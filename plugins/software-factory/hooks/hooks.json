@@ -1,0 +1,18 @@
+{
+  "description": "Puertas de calidad de la fábrica.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/consumidores-de-archivo-compartido.mjs\"",
+            "timeout": 15,
+            "statusMessage": "Revisando si el archivo es compartido"
+          }
+        ]
+      }
+    ]
+  }
+}
