@@ -6,7 +6,30 @@ Las decisiones y el estado del trabajo viven en el Proyecto de Claude
 ("Creador de agentes, skills y plugins"), bajo `software-factory/`.
 
 Este repositorio es además un **marketplace de plugins** de Claude Code
-(`.claude-plugin/marketplace.json`).
+(`.claude-plugin/marketplace.json`). Es **privado**: instalarlo exige acceso de lectura a
+`gittecnowork/software-factory` en GitHub.
+
+## Qué hay hoy
+
+| Plugin | Contenido |
+|---|---|
+| `software-factory` v0.2.0 | 5 agentes, 2 skills, 1 hook |
+| `stack-next-nest-prisma` | vacío — solo manifiesto y README de alcance |
+| `tw-finance` | vacío — solo manifiesto y README de alcance |
+
+**Agentes** (`plugins/software-factory/agents/`): `analista-de-requerimiento`, `arquitecto`,
+`implementador`, `revisor`, `verificador`. Cinco roles, fijos. El revisor **lee** y el verificador
+**ejecuta**: están separados a propósito, porque un cambio puede leerse impecable y fallar.
+
+**Skills** (`plugins/software-factory/skills/`): `contrato-de-traspaso` (cómo se delega trabajo) y
+`desplegar-next-en-vercel-monorepo` (validada contra un despliegue real).
+
+**Hook** (`plugins/software-factory/hooks/`): al editar por primera vez en una sesión un archivo que
+otros consumen (`turbo.json`, `package.json`, Dockerfiles, workflows de CI, `eas.json`, configs),
+corta una vez y pide listar quién lo usa. La segunda edición pasa: es un badén, no un muro. Escrito
+en Node para no depender de bash ni de `jq`.
+
+`workflows/` sigue vacío.
 
 ## Estructura
 
@@ -17,23 +40,19 @@ docs/
   investigacion/   Hallazgos verificados, con fecha y fuente.
 plugins/
   software-factory/          CAPA 1 — universal. Se instala a nivel usuario.
-    .claude-plugin/plugin.json
-    agents/    Roles estables (pocos): analista, arquitecto, implementador, revisor, verificador.
-    skills/    Capacidades genéricas de cualquier proyecto.
-    hooks/     Puertas de calidad deterministas.
-    workflows/ Orquestación determinista.
+    agents/ skills/ hooks/ workflows/
   overlays/
     stack-next-nest-prisma/  CAPA 2 — por stack. Se instala a nivel proyecto.
     tw-finance/              CAPA 2 — por proyecto, solo para lo irrepetible.
 ```
 
-La CAPA 3 no vive acá: es el `CLAUDE.md` de cada repo, que guarda **hechos e invariantes** de ese
+La CAPA 3 no vive acá: es el `CLAUDE.md` de cada repo, con los **hechos e invariantes** de ese
 proyecto. El **proceso** va en las skills, que se reutilizan; el `CLAUDE.md` guarda lo que solo es
 cierto ahí.
 
 ## Cómo se conecta a un proyecto
 
-Una vez, en cada máquina:
+Una vez, en cada máquina (requiere acceso de lectura al repo privado):
 
 ```bash
 claude plugin marketplace add gittecnowork/software-factory
@@ -54,26 +73,42 @@ Y en cada repo de proyecto, versionado en su `.claude/settings.json`:
 }
 ```
 
-Así cualquier sesión que abra ese repo tiene los agentes y skills correctos sin instalar nada.
 ⚠️ Si el `.gitignore` del proyecto ignora `.claude/` entero, hay que dejar de ignorar
 `.claude/settings.json` (y seguir ignorando `.claude/settings.local.json`, que es personal), o la
 configuración no viaja con el repo.
 
 ## Cuándo se activa cada cosa
 
-| Disparador | Mecanismo | Cuándo usarlo |
+| Disparador | Mecanismo | Cuándo |
 |---|---|---|
-| Por intención | El campo `description` de la skill | Lo normal. Barato, pero depende del criterio del modelo. |
-| Por evento | `hooks` del plugin | Cuando la regla **no puede** depender de que alguien se acuerde: puede bloquear el paso. |
-| Explícito | Invocar la skill por nombre | Cuando vos decidís el procedimiento. |
+| Intención | El campo `description` de la skill o del agente | Lo normal. Barato; depende del criterio del modelo. |
+| Evento | `hooks` del plugin | Cuando la regla no puede depender de que alguien se acuerde: **bloquea** el paso. |
+| Explícito | El nombre completo, con prefijo: `software-factory:contrato-de-traspaso` | Cuando la persona decide el procedimiento. |
+
+## Estado de verificación
+
+**Verificado en esta máquina:** agregar el marketplace, instalar `software-factory` a nivel usuario,
+y que la skill de despliegue aparezca en una sesión nueva fuera de este repo con el prefijo del
+plugin. `claude plugin validate .` pasa.
+
+**No verificado todavía** (no se afirma como hecho):
+
+- Que los cinco agentes se carguen y se puedan invocar desde una sesión (recién escritos).
+- Que el hook dispare, corte una vez y deje pasar la segunda.
+- Que `extraKnownMarketplaces` + `enabledPlugins` en un repo habilite los plugins sin intervención:
+  se sospecha que Claude Code pide confirmar el marketplace al confiar la carpeta.
+- Que un plugin cargue `workflows/`. Está en la referencia oficial de plugins; acá no se ejecutó
+  ninguno.
+- Los dos overlays, que están vacíos.
 
 ## Reglas de la fábrica
 
 1. El criterio de éxito de un comando es su **código de salida 0**, nunca la existencia de un archivo.
 2. Antes de editar un archivo compartido, buscar **todos sus consumidores** (Docker, CI, EAS, scripts).
-3. Una **hipótesis no verificada no se escribe como hecho**; se anota como tal, con la comprobación que la cerraría.
+3. Una **hipótesis no verificada no se escribe como hecho**. "Documentado por el proveedor" y "verificado por nosotros" se escriben distinto.
 4. Ningún paso **pago o destructivo** antes de terminar un preflight gratuito.
 5. Cuando el documento y el código se contradicen, la pregunta es **cuál de los dos está mal**, no cuál editar.
 6. Toda condición de parada lleva **alcance**: sin él, cualquier tarea se vuelve una auditoría infinita.
 7. Toda skill pre-investigada lleva fecha de verificación y un paso de re-chequeo.
 8. Agentes = roles, pocos y fijos. Skills = capacidades, muchas y acumulables.
+9. Quien ejecuta devuelve siempre **correcciones al insumo**. Sin ese bloque, el ciclo no mejora.

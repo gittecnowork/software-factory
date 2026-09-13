@@ -1,5 +1,6 @@
 {
   "name": "tecnowork",
+  "description": "Fábrica de agentes, skills y plugins de Tecnowork: capacidades reutilizables para desarrollar aplicaciones con Claude.",
   "owner": {
     "name": "Tecnowork",
     "email": "tecnoworkia@gmail.com"
