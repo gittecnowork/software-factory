@@ -92,26 +92,40 @@ configuración no viaja con el repo.
 
 ## Estado de verificación
 
+### Cómo se comprueba un cambio al plugin
+
 ⚠️ **`claude plugin validate .` en la raíz valida solo el manifiesto del marketplace, no el
 plugin.** Un agente con el frontmatter roto pasa esa validación y después carga con los metadatos
-vacíos, en silencio. Hay que validar las dos cosas:
+vacíos, en silencio.
+
+⚠️ **Y ninguna validación reemplaza a instalar de verdad.** Probar con `--plugin-dir` saltea
+comprobaciones que solo corren en la instalación desde el marketplace: así se coló un `"hooks":
+"./hooks/hooks.json"` en el manifiesto que rompía la carga, porque `hooks/hooks.json` ya se toma por
+convención y declararlo lo cargaba dos veces. Validó bien, funcionó con `--plugin-dir`, y falló al
+instalar.
+
+El ciclo completo, después de cualquier cambio al plugin:
 
 ```bash
 claude plugin validate .
 claude plugin validate ./plugins/software-factory
+# publicar, y recién entonces:
+claude plugin marketplace update tecnowork
+claude plugin uninstall software-factory@tecnowork
+claude plugin install software-factory@tecnowork --scope user
+claude plugin list          # tiene que decir la versión nueva y "enabled"
 ```
 
 **Verificado en esta máquina:** agregar el marketplace e instalar `software-factory` a nivel
 usuario; que la skill de despliegue aparezca en una sesión nueva fuera de este repo con el prefijo
 del plugin; que los cinco agentes aparezcan en el arranque de una sesión y que `software-factory:revisor`
-responda con su rol y sus herramientas; y que el hook corte la primera edición de `package.json`,
-deje pasar la segunda y no moleste en un archivo común.
+responda con su rol y sus herramientas, tanto con ficha completa como con ficha incompleta (donde
+frena y dice qué falta); que el hook corte la primera edición de un archivo compartido existente,
+deje pasar la segunda, no moleste en un archivo común y no bloquee la creación de uno nuevo; y la
+**instalación real desde el marketplace**, con el plugin cargando habilitado.
 
 **No verificado todavía** (no se afirma como hecho):
 
-- La versión instalada desde el marketplace: las pruebas de agentes y hook se hicieron con
-  `--plugin-dir`. Después de publicar hay que correr `claude plugin marketplace update tecnowork` y
-  actualizar el plugin, o la instalación de usuario se queda en una versión vieja.
 - Que `extraKnownMarketplaces` + `enabledPlugins` en un repo habilite los plugins sin intervención:
   se sospecha que Claude Code pide confirmar el marketplace al confiar la carpeta.
 - Que un plugin cargue `workflows/`. Está en la referencia oficial de plugins; acá no se ejecutó
@@ -131,3 +145,5 @@ deje pasar la segunda y no moleste en un archivo común.
 9. Quien ejecuta devuelve siempre **correcciones al insumo**. Sin ese bloque, el ciclo no mejora.
 10. La **evidencia admisible depende de las herramientas del rol**: código de salida para quien ejecuta, `archivo:línea` para quien lee, fuente con fecha para lo externo. Pedir una prueba que el rol no puede dar es un error de la ficha.
 11. Un subagente **no puede preguntar**: o frena porque lo que falta haría el trabajo mal o irreversible, o asume lo más conservador y lo declara.
+12. **Validar no es instalar.** Un plugin se prueba instalándolo desde el marketplace, no solo con `validate` ni con `--plugin-dir`.
+13. **Una cita lleva fuente primaria y fecha.** Un dato tomado de un artículo que cita a otro no está verificado: o se abre la fuente, o se dice que no se abrió.

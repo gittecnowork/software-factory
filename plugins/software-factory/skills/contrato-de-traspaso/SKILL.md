@@ -9,10 +9,15 @@ Un agente arranca con **contexto cero**: no hereda la conversación, ni los arch
 ni las skills que otro invocó. Todo lo que no esté en la ficha, lo va a suponer. La ficha no es
 burocracia: es el único canal.
 
-Las dos causas dominantes de fracaso en equipos de agentes son la **especificación ambigua** (41,77%)
-y la **coordinación** (36,94%), por encima de la verificación ausente (21,30%), según el análisis de
-más de 1.600 trazas de ejecución de Cemri et al., *Why Do Multi-Agent LLM Systems Fail?* (NeurIPS
-2025). Las tres se atacan acá.
+El trabajo de referencia sobre por qué fallan los sistemas multiagente —Cemri et al., *Why Do
+Multi-Agent LLM Systems Fail?*, arXiv:2503.13657, v3 de octubre de 2025— agrupa 14 modos de falla en
+**tres categorías: diseño del sistema, desalineación entre agentes y verificación de la tarea**. Su
+taxonomía se construyó analizando 150 trazas, sobre un conjunto de más de 1.600 en 7 frameworks.
+Las tres categorías se atacan acá.
+
+*Verificado contra el resumen del paper en arXiv el 2026-09-13. Es un preprint: no se le atribuye
+venue. Circulan porcentajes por categoría en artículos de terceros; no se citan acá porque no se
+comprobaron contra la fuente primaria.*
 
 ## La ficha (quien delega)
 
@@ -50,6 +55,13 @@ contenido del primero.
 
 El quinto es el que hace que la fábrica mejore. Un ejecutor que devuelve "todo bien" sin criticar
 el encargo tira la información más valiosa del ciclo: esa ficha se va a volver a usar.
+
+## Si frenás antes de empezar
+
+Devolvés igual los cinco bloques. "Evidencia" y "Fuera de alcance" pueden decir "no aplica": lo que
+importa es que "Resultado" explique **por qué** frenaste y que "Correcciones al insumo" diga qué
+faltaba y dónde se conseguiría. El formato no se acorta aunque el trabajo no haya empezado, porque
+quien recibe la respuesta espera siempre la misma forma y la lee sin adivinar.
 
 ## Quien ejecuta no puede preguntar
 
