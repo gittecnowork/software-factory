@@ -13,7 +13,7 @@ Este repositorio es además un **marketplace de plugins** de Claude Code
 
 | Plugin | Contenido |
 |---|---|
-| `software-factory` v0.2.0 | 5 agentes, 2 skills, 1 hook |
+| `software-factory` v0.3.0 | 5 agentes, 2 skills, 1 hook |
 | `stack-next-nest-prisma` | vacío — solo manifiesto y README de alcance |
 | `tw-finance` | vacío — solo manifiesto y README de alcance |
 
@@ -24,10 +24,15 @@ Este repositorio es además un **marketplace de plugins** de Claude Code
 **Skills** (`plugins/software-factory/skills/`): `contrato-de-traspaso` (cómo se delega trabajo) y
 `desplegar-next-en-vercel-monorepo` (validada contra un despliegue real).
 
-**Hook** (`plugins/software-factory/hooks/`): al editar por primera vez en una sesión un archivo que
-otros consumen (`turbo.json`, `package.json`, Dockerfiles, workflows de CI, `eas.json`, configs),
-corta una vez y pide listar quién lo usa. La segunda edición pasa: es un badén, no un muro. Escrito
-en Node para no depender de bash ni de `jq`.
+**Hook** (`plugins/software-factory/hooks/`): al editar por primera vez en una sesión un archivo
+**que ya existe** y que otros consumen (`turbo.json`, `package.json`, `Dockerfile` y sus variantes,
+workflows de CI, `eas.json`, cualquier `*.config.*`, `schema.prisma`, lockfiles), corta una vez y
+pide listar quién lo usa. La segunda edición pasa: es un badén, no un muro. Crear un archivo nuevo
+nunca se bloquea, porque todavía no tiene consumidores. Escrito en Node para no depender de bash ni
+de `jq`; normaliza mayúsculas en Windows y limpia sus marcas a los dos días.
+
+El contrato de entrega común vive **una sola vez** en la skill `contrato-de-traspaso`; cada agente
+lleva un resumen corto que apunta a ella, en vez de una copia completa.
 
 `workflows/` sigue vacío.
 
@@ -87,14 +92,26 @@ configuración no viaja con el repo.
 
 ## Estado de verificación
 
-**Verificado en esta máquina:** agregar el marketplace, instalar `software-factory` a nivel usuario,
-y que la skill de despliegue aparezca en una sesión nueva fuera de este repo con el prefijo del
-plugin. `claude plugin validate .` pasa.
+⚠️ **`claude plugin validate .` en la raíz valida solo el manifiesto del marketplace, no el
+plugin.** Un agente con el frontmatter roto pasa esa validación y después carga con los metadatos
+vacíos, en silencio. Hay que validar las dos cosas:
+
+```bash
+claude plugin validate .
+claude plugin validate ./plugins/software-factory
+```
+
+**Verificado en esta máquina:** agregar el marketplace e instalar `software-factory` a nivel
+usuario; que la skill de despliegue aparezca en una sesión nueva fuera de este repo con el prefijo
+del plugin; que los cinco agentes aparezcan en el arranque de una sesión y que `software-factory:revisor`
+responda con su rol y sus herramientas; y que el hook corte la primera edición de `package.json`,
+deje pasar la segunda y no moleste en un archivo común.
 
 **No verificado todavía** (no se afirma como hecho):
 
-- Que los cinco agentes se carguen y se puedan invocar desde una sesión (recién escritos).
-- Que el hook dispare, corte una vez y deje pasar la segunda.
+- La versión instalada desde el marketplace: las pruebas de agentes y hook se hicieron con
+  `--plugin-dir`. Después de publicar hay que correr `claude plugin marketplace update tecnowork` y
+  actualizar el plugin, o la instalación de usuario se queda en una versión vieja.
 - Que `extraKnownMarketplaces` + `enabledPlugins` en un repo habilite los plugins sin intervención:
   se sospecha que Claude Code pide confirmar el marketplace al confiar la carpeta.
 - Que un plugin cargue `workflows/`. Está en la referencia oficial de plugins; acá no se ejecutó
@@ -112,3 +129,5 @@ plugin. `claude plugin validate .` pasa.
 7. Toda skill pre-investigada lleva fecha de verificación y un paso de re-chequeo.
 8. Agentes = roles, pocos y fijos. Skills = capacidades, muchas y acumulables.
 9. Quien ejecuta devuelve siempre **correcciones al insumo**. Sin ese bloque, el ciclo no mejora.
+10. La **evidencia admisible depende de las herramientas del rol**: código de salida para quien ejecuta, `archivo:línea` para quien lee, fuente con fecha para lo externo. Pedir una prueba que el rol no puede dar es un error de la ficha.
+11. Un subagente **no puede preguntar**: o frena porque lo que falta haría el trabajo mal o irreversible, o asume lo más conservador y lo declara.
