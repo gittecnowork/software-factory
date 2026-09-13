@@ -1,0 +1,24 @@
+{
+  "name": "tecnowork",
+  "owner": {
+    "name": "Tecnowork",
+    "email": "tecnoworkia@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "software-factory",
+      "source": "./plugins/software-factory",
+      "description": "Roles, skills y puertas de calidad reutilizables en cualquier proyecto."
+    },
+    {
+      "name": "stack-next-nest-prisma",
+      "source": "./plugins/overlays/stack-next-nest-prisma",
+      "description": "Capacidades propias del stack Next.js + NestJS + Prisma en monorepo pnpm/Turborepo."
+    },
+    {
+      "name": "tw-finance",
+      "source": "./plugins/overlays/tw-finance",
+      "description": "Lo irrepetible de TW Finance: auth de dos tokens, dinero como string, spec duplicada."
+    }
+  ]
+}

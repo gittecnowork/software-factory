@@ -1,0 +1,7 @@
+{
+  "name": "tw-finance",
+  "displayName": "TW Finance",
+  "version": "0.1.0",
+  "description": "Lo irrepetible de TW Finance: auth de dos tokens, dinero como string, spec duplicada.",
+  "author": { "name": "Tecnowork" }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "software-factory",
+  "displayName": "Software Factory",
+  "version": "0.1.0",
+  "description": "Roles, skills y puertas de calidad reutilizables para desarrollar aplicaciones con Claude.",
+  "author": { "name": "Tecnowork" }
+}
