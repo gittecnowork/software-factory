@@ -5,6 +5,5 @@
   "description": "Roles, contratos de traspaso, skills y puertas de calidad reutilizables para desarrollar aplicaciones con Claude.",
   "author": {
     "name": "Tecnowork"
-  },
-  "hooks": "./hooks/hooks.json"
+  }
 }
