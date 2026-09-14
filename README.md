@@ -13,16 +13,18 @@ Este repositorio es además un **marketplace de plugins** de Claude Code
 
 | Plugin | Contenido |
 |---|---|
-| `software-factory` v0.3.0 | 5 agentes, 2 skills, 1 hook |
-| `stack-next-nest-prisma` | vacío — solo manifiesto y README de alcance |
+| `software-factory` v0.4.0 | 5 agentes, 3 skills, 1 hook |
+| `stack-next-nest-prisma` v0.2.0 | 1 skill: `migrar-postgres-a-supabase-con-prisma` |
 | `tw-finance` | vacío — solo manifiesto y README de alcance |
 
 **Agentes** (`plugins/software-factory/agents/`): `analista-de-requerimiento`, `arquitecto`,
 `implementador`, `revisor`, `verificador`. Cinco roles, fijos. El revisor **lee** y el verificador
 **ejecuta**: están separados a propósito, porque un cambio puede leerse impecable y fallar.
 
-**Skills** (`plugins/software-factory/skills/`): `contrato-de-traspaso` (cómo se delega trabajo) y
-`desplegar-next-en-vercel-monorepo` (validada contra un despliegue real).
+**Skills** (`plugins/software-factory/skills/`): `contrato-de-traspaso` (cómo se delega trabajo),
+`desplegar-next-en-vercel-monorepo` (validada contra un despliegue real) y
+`alta-de-proyecto-en-la-fabrica` (conectar un repo nuevo o existente: marketplace, overlays,
+`.claude/settings.json` y `CLAUDE.md`).
 
 **Hook** (`plugins/software-factory/hooks/`): al editar por primera vez en una sesión un archivo
 **que ya existe** y que otros consumen (`turbo.json`, `package.json`, `Dockerfile` y sus variantes,
@@ -130,7 +132,10 @@ deje pasar la segunda, no moleste en un archivo común y no bloquee la creación
   se sospecha que Claude Code pide confirmar el marketplace al confiar la carpeta.
 - Que un plugin cargue `workflows/`. Está en la referencia oficial de plugins; acá no se ejecutó
   ninguno.
-- Los dos overlays, que están vacíos.
+- El overlay `tw-finance`, que sigue vacío. El overlay `stack-next-nest-prisma` ya no lo está —tiene
+  la skill `migrar-postgres-a-supabase-con-prisma`—, pero que esa skill cargue de verdad en la
+  sesión de un proyecto que lo habilita, vía marketplace y sin borrar caché a mano, todavía no se
+  verificó desde acá.
 
 ## Reglas de la fábrica
 
