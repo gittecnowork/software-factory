@@ -149,3 +149,4 @@ deje pasar la segunda, no moleste en un archivo común y no bloquee la creación
 13. **Una cita lleva fuente primaria y fecha.** Un dato tomado de un artículo que cita a otro no está verificado: o se abre la fuente, o se dice que no se abrió.
 14. **Que Cowork escriba un archivo no se da por hecho hasta releerlo desde el disco.** Ya falló dos veces reportando éxito sin escribir.
 15. **Un texto entregado para aplicar literalmente saltea la revisión crítica.** Si el contenido importa, se pide juicio, no obediencia.
+16. **Todo cambio de contenido de un plugin sube su `version` en `plugin.json`, en el mismo commit.** El caché de plugins se indexa por versión, no por contenido: si la versión no cambia, `marketplace update` y `plugin update` no traen nada y la máquina se queda con el contenido viejo sin ningún error. Se detecta tarde y se confunde con "la skill no cargó". Un cambio publicado sin bump obliga a borrar el caché a mano en cada máquina que ya lo tenía.

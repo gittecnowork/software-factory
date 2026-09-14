@@ -1,7 +1,7 @@
 {
   "name": "stack-next-nest-prisma",
   "displayName": "Stack Next + Nest + Prisma",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Capacidades propias del stack Next.js + NestJS + Prisma en monorepo pnpm/Turborepo.",
   "author": { "name": "Tecnowork" }
 }
