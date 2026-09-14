@@ -147,3 +147,5 @@ deje pasar la segunda, no moleste en un archivo común y no bloquee la creación
 11. Un subagente **no puede preguntar**: o frena porque lo que falta haría el trabajo mal o irreversible, o asume lo más conservador y lo declara.
 12. **Validar no es instalar.** Un plugin se prueba instalándolo desde el marketplace, no solo con `validate` ni con `--plugin-dir`.
 13. **Una cita lleva fuente primaria y fecha.** Un dato tomado de un artículo que cita a otro no está verificado: o se abre la fuente, o se dice que no se abrió.
+14. **Que Cowork escriba un archivo no se da por hecho hasta releerlo desde el disco.** Ya falló dos veces reportando éxito sin escribir.
+15. **Un texto entregado para aplicar literalmente saltea la revisión crítica.** Si el contenido importa, se pide juicio, no obediencia.

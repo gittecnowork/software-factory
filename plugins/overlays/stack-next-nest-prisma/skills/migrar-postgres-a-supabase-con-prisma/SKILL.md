@@ -134,11 +134,13 @@ Tres cosas que decidir antes de apretar enter:
   ```
 
   Un rol con `rolsuper` o `rolbypassrls` **saltea las políticas siempre**, incluso con `FORCE ROW
-  LEVEL SECURITY`: ahí la restauración pasa y la política ni se evalúa. Ojo con esto porque explica
-  por qué "en mi Postgres andaba": la imagen oficial de Postgres crea al usuario del contenedor como
-  superusuario del clúster, así que en desarrollo la RLS nunca se puso a prueba de verdad. Los
-  proveedores gestionados no suelen dar superusuario, así que en el destino la política **sí** se
-  evalúa.
+  LEVEL SECURITY`: ahí la restauración pasa y la política ni se evalúa. Ojo con esto porque puede
+  explicar por qué "en mi Postgres andaba": la imagen oficial de Postgres crea al usuario del
+  contenedor como superusuario del clúster, y **si la aplicación se conecta en desarrollo con ese
+  mismo usuario**, la RLS nunca se puso a prueba de verdad ahí. Si en cambio la app usa una variable
+  propia para el rol restringido (el `<rol_app>` de la Fase 1), la política sí se evaluó también en
+  desarrollo. Los proveedores gestionados no suelen dar superusuario, así que en el destino la
+  política se evalúa, se haya evaluado antes o no.
 
   Si el rol que restaura no saltea RLS, entonces sí manda la política: si da acceso total cuando el
   contexto de inquilino no está seteado, la restauración pasa (la sesión de `pg_restore` no lo fija);
@@ -190,6 +192,17 @@ que el planificador tenga estadísticas.
    excepciones explícita —vacía por defecto— convierte el olvido en un test rojo en vez de en una
    fuga de datos.
 
+   Pero ese test solo prueba algo si corre con un rol que no saltea RLS: con `rolsuper` o
+   `rolbypassrls`, la consulta nunca ve una tabla bloqueada aunque falte la política, y el test
+   "pasa" sin haber comprobado nada. Antes de la consulta de arriba, el mismo test tiene que afirmar
+   su propio rol:
+
+   ```sql
+   select rolsuper, rolbypassrls from pg_roles where rolname = current_user;
+   ```
+
+   y fallar si alguno de los dos da verdadero.
+
 ---
 
 ## Fase 5 — Corte y vuelta atrás
@@ -221,6 +234,6 @@ el esquema.
 | Errores raros solo al migrar | Las migraciones van por el pooler de transacciones en vez de `DIRECT_URL`. |
 | Errores de prepared statements en runtime | Modo transacción sin `?pgbouncer=true`. |
 | RLS "activa" pero el dueño ve todo | Falta `FORCE ROW LEVEL SECURITY`; o el rol tiene `rolsuper`/`rolbypassrls`, que saltean las políticas igual. |
-| "En desarrollo andaba" y en el destino no | En desarrollo se conectaba un superusuario y la RLS nunca se evaluó. |
+| "En desarrollo andaba" y en el destino no | En desarrollo la app se conectaba con el superusuario del contenedor en vez del rol de aplicación, y la RLS nunca se evaluó ahí. |
 | Primer insert falla por clave duplicada | La secuencia quedó atrás tras un restore de datos. |
 | El proyecto se apagó solo | Plan gratuito: se pausa tras una semana de inactividad. |
