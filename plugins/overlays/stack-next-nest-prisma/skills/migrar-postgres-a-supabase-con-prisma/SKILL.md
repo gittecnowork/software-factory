@@ -126,10 +126,24 @@ pg_restore --data-only --no-owner --no-privileges --disable-triggers -d <destino
 
 Tres cosas que decidir antes de apretar enter:
 
-- **La RLS puede bloquear la restauración.** Si tus políticas dan acceso total cuando el contexto de
-  inquilino no está seteado, la restauración pasa sin hacer nada especial (la sesión de
-  `pg_restore` no lo fija). Si tus políticas son restrictivas por defecto, hay que restaurar con un
-  rol que las saltee o desactivarlas durante la carga y volver a activarlas.
+- **La RLS puede bloquear la restauración, y quién restaura importa más que la política.** Antes de
+  nada, averiguá qué es el rol con el que vas a restaurar:
+
+  ```sql
+  select rolname, rolsuper, rolbypassrls from pg_roles where rolname = current_user;
+  ```
+
+  Un rol con `rolsuper` o `rolbypassrls` **saltea las políticas siempre**, incluso con `FORCE ROW
+  LEVEL SECURITY`: ahí la restauración pasa y la política ni se evalúa. Ojo con esto porque explica
+  por qué "en mi Postgres andaba": la imagen oficial de Postgres crea al usuario del contenedor como
+  superusuario del clúster, así que en desarrollo la RLS nunca se puso a prueba de verdad. Los
+  proveedores gestionados no suelen dar superusuario, así que en el destino la política **sí** se
+  evalúa.
+
+  Si el rol que restaura no saltea RLS, entonces sí manda la política: si da acceso total cuando el
+  contexto de inquilino no está seteado, la restauración pasa (la sesión de `pg_restore` no lo fija);
+  si es restrictiva por defecto, hay que desactivar las políticas durante la carga y volver a
+  activarlas, o restaurar con un rol que las saltee.
 - **`--disable-triggers`** evita que triggers de auditoría o de integridad se disparen con datos
   históricos. Requiere privilegios suficientes; si falla, restaurá por orden de dependencias.
 - **Ventana de mantenimiento.** Todo lo que se escriba en el origen después del dump se pierde.
@@ -154,7 +168,27 @@ que el planificador tenga estadísticas.
    health check.
 6. **Secuencias**: si el esquema usa columnas autoincrementales, comprobar que la secuencia quedó
    por encima del máximo valor existente. Un restore de datos no siempre la reposiciona, y el
-   síntoma aparece recién en el primer insert.
+   síntoma aparece recién en el primer insert. (Con identificadores UUID generados en la
+   aplicación, este punto no aplica.)
+7. **Dejá la garantía puesta, no solo comprobada.** Verificar la RLS el día de la migración no
+   impide que dentro de seis meses alguien agregue una tabla con la columna de inquilino y se olvide
+   de la política. Un test que enumere las tablas y falle solo es barato y permanente:
+
+   ```sql
+   -- toda tabla con la columna de inquilino tiene que tener RLS y al menos una política
+   select c.relname
+   from pg_class c
+   join pg_namespace n on n.oid = c.relnamespace
+   join information_schema.columns col
+     on col.table_name = c.relname and col.column_name = '<columna_de_inquilino>'
+   where n.nspname = 'public' and c.relkind = 'r'
+     and (not c.relrowsecurity
+          or not exists (select 1 from pg_policies p where p.tablename = c.relname));
+   ```
+
+   Si devuelve filas, falta RLS o falta política. Llevarlo a un test de integración con una lista de
+   excepciones explícita —vacía por defecto— convierte el olvido en un test rojo en vez de en una
+   fuga de datos.
 
 ---
 
@@ -186,6 +220,7 @@ el esquema.
 | "No conecta" y las credenciales son correctas | La conexión directa es IPv6 sin el complemento de IPv4; el *shared pooler* es IPv4 siempre. |
 | Errores raros solo al migrar | Las migraciones van por el pooler de transacciones en vez de `DIRECT_URL`. |
 | Errores de prepared statements en runtime | Modo transacción sin `?pgbouncer=true`. |
-| RLS "activa" pero el dueño ve todo | Falta `FORCE ROW LEVEL SECURITY`. |
+| RLS "activa" pero el dueño ve todo | Falta `FORCE ROW LEVEL SECURITY`; o el rol tiene `rolsuper`/`rolbypassrls`, que saltean las políticas igual. |
+| "En desarrollo andaba" y en el destino no | En desarrollo se conectaba un superusuario y la RLS nunca se evaluó. |
 | Primer insert falla por clave duplicada | La secuencia quedó atrás tras un restore de datos. |
 | El proyecto se apagó solo | Plan gratuito: se pausa tras una semana de inactividad. |
