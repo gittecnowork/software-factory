@@ -13,7 +13,7 @@ Este repositorio es además un **marketplace de plugins** de Claude Code
 
 | Plugin | Contenido |
 |---|---|
-| `software-factory` v0.4.0 | 5 agentes, 3 skills, 1 hook |
+| `software-factory` v0.5.0 | 5 agentes, 4 skills, 1 hook |
 | `stack-next-nest-prisma` v0.2.0 | 1 skill: `migrar-postgres-a-supabase-con-prisma` |
 | `tw-finance` | vacío — solo manifiesto y README de alcance |
 
@@ -22,9 +22,10 @@ Este repositorio es además un **marketplace de plugins** de Claude Code
 **ejecuta**: están separados a propósito, porque un cambio puede leerse impecable y fallar.
 
 **Skills** (`plugins/software-factory/skills/`): `contrato-de-traspaso` (cómo se delega trabajo),
-`desplegar-next-en-vercel-monorepo` (validada contra un despliegue real) y
+`desplegar-next-en-vercel-monorepo` (validada contra un despliegue real),
 `alta-de-proyecto-en-la-fabrica` (conectar un repo nuevo o existente: marketplace, overlays,
-`.claude/settings.json` y `CLAUDE.md`).
+`.claude/settings.json` y `CLAUDE.md`) y `commitear-con-verificacion` (qué entra de verdad al repo
+antes de commitear, y cómo se confirma contra el remoto después de pushear).
 
 **Hook** (`plugins/software-factory/hooks/`): al editar por primera vez en una sesión un archivo
 **que ya existe** y que otros consumen (`turbo.json`, `package.json`, `Dockerfile` y sus variantes,
@@ -111,20 +112,26 @@ El ciclo completo, después de cualquier cambio al plugin:
 ```bash
 claude plugin validate .
 claude plugin validate ./plugins/software-factory
-# publicar, y recién entonces:
+# subir la version en plugin.json (regla 16), publicar, y recién entonces:
 claude plugin marketplace update tecnowork
-claude plugin uninstall software-factory@tecnowork
-claude plugin install software-factory@tecnowork --scope user
-claude plugin list          # tiene que decir la versión nueva y "enabled"
+claude plugin update software-factory@tecnowork --scope user   # el scope donde está instalado
+claude plugin list --scope user     # tiene que decir la versión nueva y "enabled"
 ```
+
+El `--scope` va **siempre explícito** (regla 17): sin él, `update` y `list` asumen `user`, y un
+plugin habilitado desde el `.claude/settings.json` de un repo está a `project`. Si `update` no trae
+el contenido nuevo pese al bump, ahí sí recurrir a `uninstall` + `install` en ese mismo scope.
 
 **Verificado en esta máquina:** agregar el marketplace e instalar `software-factory` a nivel
 usuario; que la skill de despliegue aparezca en una sesión nueva fuera de este repo con el prefijo
 del plugin; que los cinco agentes aparezcan en el arranque de una sesión y que `software-factory:revisor`
 responda con su rol y sus herramientas, tanto con ficha completa como con ficha incompleta (donde
 frena y dice qué falta); que el hook corte la primera edición de un archivo compartido existente,
-deje pasar la segunda, no moleste en un archivo común y no bloquee la creación de uno nuevo; y la
-**instalación real desde el marketplace**, con el plugin cargando habilitado.
+deje pasar la segunda, no moleste en un archivo común y no bloquee la creación de uno nuevo; la
+**instalación real desde el marketplace**, con el plugin cargando habilitado; y —2026-09-15— que la
+skill de un **overlay** aparezca en la sesión de un proyecto que lo habilita por `settings.json`,
+después de subir la versión del overlay, con `marketplace update` + `plugin update --scope project`
+y **sin borrar caché a mano**.
 
 **No verificado todavía** (no se afirma como hecho):
 
@@ -132,10 +139,8 @@ deje pasar la segunda, no moleste en un archivo común y no bloquee la creación
   se sospecha que Claude Code pide confirmar el marketplace al confiar la carpeta.
 - Que un plugin cargue `workflows/`. Está en la referencia oficial de plugins; acá no se ejecutó
   ninguno.
-- El overlay `tw-finance`, que sigue vacío. El overlay `stack-next-nest-prisma` ya no lo está —tiene
-  la skill `migrar-postgres-a-supabase-con-prisma`—, pero que esa skill cargue de verdad en la
-  sesión de un proyecto que lo habilita, vía marketplace y sin borrar caché a mano, todavía no se
-  verificó desde acá.
+- El overlay `tw-finance`, que sigue vacío: no tiene contenido que pueda cargar, así que no hay nada
+  que verificar todavía. (Lo del overlay `stack-next-nest-prisma` ya se verificó: está arriba.)
 
 ## Reglas de la fábrica
 
@@ -154,4 +159,7 @@ deje pasar la segunda, no moleste en un archivo común y no bloquee la creación
 13. **Una cita lleva fuente primaria y fecha.** Un dato tomado de un artículo que cita a otro no está verificado: o se abre la fuente, o se dice que no se abrió.
 14. **Que Cowork escriba un archivo no se da por hecho hasta releerlo desde el disco.** Ya falló dos veces reportando éxito sin escribir.
 15. **Un texto entregado para aplicar literalmente saltea la revisión crítica.** Si el contenido importa, se pide juicio, no obediencia.
-16. **Todo cambio de contenido de un plugin sube su `version` en `plugin.json`, en el mismo commit.** El caché de plugins se indexa por versión, no por contenido: si la versión no cambia, `marketplace update` y `plugin update` no traen nada y la máquina se queda con el contenido viejo sin ningún error. Se detecta tarde y se confunde con "la skill no cargó". Un cambio publicado sin bump obliga a borrar el caché a mano en cada máquina que ya lo tenía.
+16. **Todo cambio de contenido de un plugin sube su `version` en `plugin.json`, en el mismo commit.** El caché de plugins se indexa por versión, no por contenido: si la versión no cambia, `marketplace update` y `plugin update` no traen nada y la máquina se queda con el contenido viejo sin ningún error. Se detecta tarde y se confunde con "la skill no cargó". Un cambio publicado sin bump obliga a borrar el caché a mano en cada máquina que ya lo tenía. **Confirmada empíricamente el 2026-09-15**: el bump `0.1.0 → 0.2.0` de `stack-next-nest-prisma`, más `marketplace update` y `plugin update --scope project`, trajo la skill nueva a una máquina que ya tenía cacheada la versión vieja, sin borrar caché a mano.
+17. **El `--scope` va explícito en todo comando de plugins.** `claude plugin update` y `claude plugin list` asumen `user` si no se les pasa `--scope`, y un plugin habilitado por el `.claude/settings.json` versionado de un repo está a `project`. Por eso `Plugin X is not installed at scope user` es un **error de scope**, no de instalación ni de caché: se lee como si el plugin no estuviera, y acá casi hace descartar la regla 16 por falsa. Antes de dudar del contenido publicado, repetir el comando en el scope correcto.
+18. **Cada repo se toca desde su propia sesión.** La sesión de la fábrica puede leer un proyecto y correr verificaciones de **solo lectura** sobre él, pero todo cambio dentro de un proyecto se decide y se ejecuta en la sesión de ese proyecto. Mezclarlos produce pedidos con premisas inventadas sobre el estado de un repo que nadie está mirando.
+19. **Una frase ambigua en un reporte no es un defecto del sistema.** Antes de abrir una investigación sobre el repo, se pide que se aclare la frase. Acá una redacción imprecisa —"el directorio volvió a estar ignorado" por "el contenido del directorio salvo `settings.json`"— costó dos vueltas de verificación sobre un problema inexistente.
