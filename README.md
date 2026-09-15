@@ -136,6 +136,14 @@ deje pasar la segunda, no moleste en un archivo común y no bloquee la creación
 proyecto que lo habilita por `settings.json`, después de subir la versión del overlay, con
 `marketplace update` + `plugin update --scope project` y **sin borrar caché a mano**.
 
+Y —2026-09-15— lo mismo para una skill del **plugin base**: una sesión nueva parada en el repo del
+proyecto lista `software-factory:commitear-con-verificacion` junto a la del overlay. Se observó con
+una sesión headless (`claude -p`, que no hereda esta conversación) corrida desde el directorio del
+proyecto, que es la única forma de mirar una sesión nueva sin abrirla a mano. **Esto no dice nada
+sobre el primer punto de "no verificado"**: los dos plugins ya estaban instalados a scope `project`
+en esta máquina, así que la prueba de que `extraKnownMarketplaces` + `enabledPlugins` alcanzan
+solos, sin instalar, sigue pendiente y necesita una máquina que no los tenga.
+
 **No verificado todavía** (no se afirma como hecho):
 
 - Que `extraKnownMarketplaces` + `enabledPlugins` en un repo habilite los plugins sin intervención:
