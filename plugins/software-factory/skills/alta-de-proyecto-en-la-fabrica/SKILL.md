@@ -11,6 +11,10 @@ marca como no verificado —si `extraKnownMarketplaces` + `enabledPlugins` alcan
 además hace falta instalar cada plugin a mano— sigue sin cerrar acá: la Fase 5 de esta skill es
 donde se comprueba cada vez, y lo que se descubra pasa a "Trampas ya pagadas".
 
+Corregida el 2026-09-15 por la regla 17 del README: la Fase 5 atribuía a "falta instalarlo con
+`--scope project`" un síntoma que casi siempre es el `--scope` faltante en el comando de
+**consulta**. Eso mandaba a reinstalar para arreglar un comando mal escrito.
+
 ## Lo que ordena todo
 
 - El marketplace es de la **máquina**; los plugins habilitados son del **repo**. Confundirlos hace
@@ -19,8 +23,11 @@ donde se comprueba cada vez, y lo que se descubra pasa a "Trampas ya pagadas".
 - La pregunta de las tres capas decide dónde va cada cosa, no la comodidad: ¿seguiría siendo cierto
   en otro proyecto? Siempre → `software-factory`. Solo con este stack → overlay de stack. Solo acá →
   overlay de proyecto o `CLAUDE.md`, según si es proceso o es un hecho.
-- Nada de esto reemplaza instalar de verdad: `claude plugin list`, corrido con la sesión abierta
-  **en el repo**, es la única prueba de que un plugin de alcance `project` está activo.
+- Nada de esto reemplaza instalar de verdad: `claude plugin list --scope project`, corrido con la
+  sesión abierta **en el repo**, es la única prueba de que un plugin de alcance `project` está
+  activo. El `--scope` va explícito en **todo** comando de plugins: sin él, `list` y `update` asumen
+  `user`, y lo que habilita el `.claude/settings.json` de un repo está a `project`. Un comando sin
+  scope no responde la pregunta que se le hizo: responde otra, y en silencio.
 
 ---
 
@@ -128,19 +135,37 @@ en la fábrica.
 2. Si el repo tiene un archivo que el hook de la fábrica vigila (`package.json`, `turbo.json`,
    `Dockerfile`, un lockfile...), editarlo una vez: el hook tiene que cortar y pedir los
    consumidores.
-3. `claude plugin list` muestra cada plugin de `enabledPlugins` con la versión esperada y
-   `enabled`. Si falta alguno pese a estar en `settings.json`, no asumir que el archivo está mal:
-   puede hacer falta instalarlo también, con `claude plugin install <plugin>@tecnowork --scope
-   project` — el README de la fábrica marca esto como no verificado; esta fase es donde se
-   verifica.
+3. `claude plugin list --scope project` muestra cada plugin de `enabledPlugins` con la versión
+   esperada y `enabled`. Si falta alguno pese a estar en `settings.json`, hay **tres causas
+   posibles y se descartan en este orden**, de la más barata a la más cara:
+
+   1. **El `--scope` faltaba en el comando de consulta.** Es la causa más frecuente y la más
+      barata. Sin `--scope`, `list` mira el scope `user` y no ve nada de lo que el repo habilita;
+      `update` responde `Plugin X is not installed at scope user`, que se lee como "no está
+      instalado" y no lo es. Repetir con `--scope project` **antes** de tocar cualquier otra cosa.
+   2. **El plugin no está instalado en ese scope.** Recién si con el scope correcto sigue sin
+      aparecer: `claude plugin install <plugin>@tecnowork --scope project`. Si `extraKnownMarketplaces`
+      + `enabledPlugins` alcanza sin este paso es justo lo que el README de la fábrica marca como
+      no verificado; esta fase es donde se comprueba, y lo que se descubra pasa a "Trampas ya
+      pagadas".
+   3. **El marketplace no está en esta máquina.** Se descarta en la Fase 0, pero si se salteó, es
+      esto.
+
+   El orden importa: invertirlo hace reinstalar, desinstalar y borrar caché para arreglar un
+   comando mal escrito, y de paso ensucia el estado real del que se partía.
 4. **Si un agente o una skill que se acaba de agregar a un plugin no aparece**, y `claude plugin
-   list` sí muestra el plugin como `enabled`: el caché local de plugins se indexa por **número de
-   versión**, no por contenido. `claude plugin marketplace update` refresca el catálogo, pero si el
-   `plugin.json` del plugin no subió de versión, el contenido cacheado de esa versión **no se
-   vuelve a bajar** — ni con `marketplace update` ni con `claude plugin update`. La causa no es un
+   list --scope project` sí muestra el plugin como `enabled` **con la versión nueva**: el caché
+   local de plugins se indexa por **número de versión**, no por contenido. `claude plugin
+   marketplace update` refresca el catálogo, pero si el `plugin.json` del plugin no subió de
+   versión, el contenido cacheado de esa versión **no se vuelve a bajar** — ni con `marketplace
+   update` ni con `claude plugin update --scope <el que corresponda>`. La causa no es un
    settings.json mal escrito ni una sesión vieja: es que quien publicó el cambio no subió la
    versión del plugin. La solución es esa —subir la versión y volver a instalar—, no reinstalar en
    bucle.
+
+   La versión que `list` reporta es lo que separa este caso del punto 3: si dice la versión
+   **vieja**, es caché y falta el bump; si dice la **nueva** y la skill igual no aparece, el
+   problema está en el contenido publicado, no en el caché.
 
 ---
 
@@ -160,5 +185,7 @@ capas, escribir) se hacen en la misma alta, porque el stack y la historia ya est
 |---|---|
 | El repo tiene `.claude/settings.json` bien escrito y la sesión no ve nada | Esta máquina nunca agregó el marketplace `tecnowork`: el marketplace es de la máquina, no del repo. |
 | Se agregó `!.claude/settings.json` al `.gitignore` y sigue sin versionarse | El directorio `.claude/` estaba excluido entero: Git no evalúa excepciones dentro de una carpeta ya ignorada. Hay que excluir por archivo (`.claude/*` + `!archivo`), no por carpeta. |
-| Un overlay listado en `enabledPlugins` no aparece en `claude plugin list` | Puede hacer falta instalarlo además, con `--scope project`. |
-| El plugin figura `enabled` pero una skill o un agente nuevos no aparecen en la sesión | El caché local quedó en la versión vieja: el `plugin.json` no subió de versión cuando se agregó contenido, y ni `marketplace update` ni `plugin update` vuelven a bajarlo. |
+| Un overlay listado en `enabledPlugins` no aparece en `claude plugin list` | Lo primero a descartar es el `--scope` faltante **en el comando de consulta**: sin él, `list` mira `user` y el overlay está a `project`. Recién si con `--scope project` sigue faltando, puede hacer falta instalarlo además, con `install --scope project`. |
+| `claude plugin update` responde `Plugin X is not installed at scope user` | Error de scope, no de instalación ni de caché. El plugin está a `project`, habilitado por el `.claude/settings.json` del repo. Repetir con `--scope project`. Acá esta lectura casi hace descartar por falsa la regla del bump de versión. |
+| El plugin figura `enabled` **con la versión vieja** y una skill o un agente nuevos no aparecen | El caché local quedó en esa versión: el `plugin.json` no subió de versión cuando se agregó contenido, y ni `marketplace update` ni `plugin update` vuelven a bajarlo. |
+| El plugin figura `enabled` **con la versión nueva** y la skill nueva igual no aparece | No es caché ni scope: el contenido publicado no trae la skill, o su frontmatter está roto. Mirar el árbol publicado, no reinstalar. |
