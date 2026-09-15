@@ -13,7 +13,7 @@ Este repositorio es además un **marketplace de plugins** de Claude Code
 
 | Plugin | Contenido |
 |---|---|
-| `software-factory` v0.5.1 | 5 agentes, 4 skills, 1 hook |
+| `software-factory` v0.5.2 | 5 agentes, 4 skills, 1 hook |
 | `stack-next-nest-prisma` v0.2.0 | 1 skill: `migrar-postgres-a-supabase-con-prisma` |
 | `tw-finance` | vacío — solo manifiesto y README de alcance |
 
@@ -115,12 +115,15 @@ claude plugin validate ./plugins/software-factory
 # subir la version en plugin.json (regla 16), publicar, y recién entonces:
 claude plugin marketplace update tecnowork
 claude plugin update software-factory@tecnowork --scope user   # el scope donde está instalado
-claude plugin list --scope user     # tiene que decir la versión nueva y "enabled"
+claude plugin list                  # cada entrada trae su Scope, su Version y su Status
 ```
 
-El `--scope` va **siempre explícito** (regla 17): sin él, `update` y `list` asumen `user`, y un
-plugin habilitado desde el `.claude/settings.json` de un repo está a `project`. Si `update` no trae
-el contenido nuevo pese al bump, ahí sí recurrir a `uninstall` + `install` en ese mismo scope.
+El `--scope` va **siempre explícito en `update` e `install`** (regla 17): sin él asumen `user`, y un
+plugin habilitado desde el `.claude/settings.json` de un repo está a `project`. `list` es la
+excepción —no acepta `--scope`— y por eso es el comando con el que se lee el estado: imprime **todos
+los scopes juntos**, cada uno etiquetado, así que muestra si el mismo plugin está a `user` con una
+versión vieja y a `project` con la nueva. Si `update` no trae el contenido nuevo pese al bump, ahí
+sí recurrir a `uninstall` + `install` en ese mismo scope.
 
 **Verificado en esta máquina:** agregar el marketplace e instalar `software-factory` a nivel
 usuario; que la skill de despliegue aparezca en una sesión nueva fuera de este repo con el prefijo
@@ -160,7 +163,7 @@ proyecto que lo habilita por `settings.json`, después de subir la versión del 
 14. **Que Cowork escriba un archivo no se da por hecho hasta releerlo desde el disco.** Ya falló dos veces reportando éxito sin escribir.
 15. **Un texto entregado para aplicar literalmente saltea la revisión crítica.** Si el contenido importa, se pide juicio, no obediencia.
 16. **Todo cambio de contenido de un plugin sube su `version` en `plugin.json`, en el mismo commit.** El caché de plugins se indexa por versión, no por contenido: si la versión no cambia, `marketplace update` y `plugin update` no traen nada y la máquina se queda con el contenido viejo sin ningún error. Se detecta tarde y se confunde con "la skill no cargó". Un cambio publicado sin bump obliga a borrar el caché a mano en cada máquina que ya lo tenía. **Confirmada empíricamente el 2026-09-14, registrada acá el 2026-09-15**: el bump `0.1.0 → 0.2.0` de `stack-next-nest-prisma` (commit `6f67f1f`), más `marketplace update` y `plugin update --scope project`, trajo la skill nueva a una máquina que ya tenía cacheada la versión vieja, sin borrar caché a mano. Las dos fechas van separadas a propósito: entre medio, el commit `9b41783` todavía declara la carga del overlay como no verificada, y leer una sola fecha contra esa historia hace dudar de la regla.
-17. **El `--scope` va explícito en todo comando de plugins.** `claude plugin update` y `claude plugin list` asumen `user` si no se les pasa `--scope`, y un plugin habilitado por el `.claude/settings.json` versionado de un repo está a `project`. Por eso `Plugin X is not installed at scope user` es un **error de scope**, no de instalación ni de caché: se lee como si el plugin no estuviera, y acá casi hace descartar la regla 16 por falsa. Antes de dudar del contenido publicado, repetir el comando en el scope correcto.
+17. **El `--scope` va explícito en `update` e `install`. `list` no lo acepta: muestra todos los scopes a la vez.** `claude plugin update` y `claude plugin install` asumen `user` si no se les pasa `--scope`, y un plugin habilitado por el `.claude/settings.json` versionado de un repo está a `project`. Por eso `Plugin X is not installed at scope user` es un **error de scope**, no de instalación ni de caché: se lee como si el plugin no estuviera, y acá casi hace descartar la regla 16 por falsa. Antes de dudar del contenido publicado, repetir el comando en el scope correcto. `claude plugin list` **no tiene** `--scope` —comprobado el 2026-09-15: responde `error: unknown option '--scope'`—; imprime cada plugin instalado con su `Scope`, su `Version` y su `Status`, y por eso es el comando con el que se lee el estado real. Escribirle un `--scope` que no existe no falla en silencio, pero sí corta la verificación a mitad de camino: la versión anterior de esta regla lo daba por hecho, y la skill `alta-de-proyecto-en-la-fabrica` lo había copiado.
 18. **Cada repo se toca desde su propia sesión.** La sesión de la fábrica puede leer un proyecto y correr verificaciones de **solo lectura** sobre él, pero todo cambio dentro de un proyecto se decide y se ejecuta en la sesión de ese proyecto. Mezclarlos produce pedidos con premisas inventadas sobre el estado de un repo que nadie está mirando.
 19. **Una frase ambigua en un reporte no es un defecto del sistema.** Antes de abrir una investigación sobre el repo, se pide que se aclare la frase. Acá una redacción imprecisa —"el directorio volvió a estar ignorado" por "el contenido del directorio salvo `settings.json`"— costó dos vueltas de verificación sobre un problema inexistente.
 
