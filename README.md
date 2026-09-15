@@ -13,7 +13,7 @@ Este repositorio es además un **marketplace de plugins** de Claude Code
 
 | Plugin | Contenido |
 |---|---|
-| `software-factory` v0.5.2 | 5 agentes, 4 skills, 1 hook |
+| `software-factory` v0.5.3 | 5 agentes, 4 skills, 1 hook |
 | `stack-next-nest-prisma` v0.2.0 | 1 skill: `migrar-postgres-a-supabase-con-prisma` |
 | `tw-finance` | vacío — solo manifiesto y README de alcance |
 

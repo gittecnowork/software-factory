@@ -38,7 +38,10 @@ tres igual y esta skill lo había copiado; se comprobó con `claude plugin list 
   - `list` **no acepta `--scope`** (`error: unknown option '--scope'`). Imprime todos los scopes
     juntos, cada entrada con su `Scope`, su `Version` y su `Status`. Eso es una ventaja, no una
     limitación: es lo que deja ver que el mismo plugin está a `user` en una versión vieja y a
-    `project` en la nueva.
+    `project` en la nueva. Ojo con `Scope: project`: lista los installs de **otros** repos también.
+    Lo que cambia según dónde se corra el comando es el `Status` —comprobado: el mismo install de
+    un overlay sale `enabled` en el repo que lo habilita y `disabled` en otro—, así que la prueba
+    de que un plugin está activo *acá* es el `Status`, con la sesión abierta en este repo.
 
 ---
 
