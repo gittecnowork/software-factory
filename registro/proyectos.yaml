@@ -1,0 +1,147 @@
+# Registro de proyectos de Tecnowork
+#
+# Qué es: el inventario de TODO proyecto que ocupa recursos en las cuentas de Tecnowork
+# (Supabase, Vercel, Railway, dominios), use la fábrica o no. Sirve para tres cosas:
+#   1. Impacto: qué repos consumen cada plugin antes de publicar un cambio.
+#   2. Costos: a qué proyecto/cliente se imputa cada recurso (doc 06 del Proyecto).
+#   3. Huérfanos y topes: recursos sin dueño y el límite de 2 proyectos Free de Supabase.
+#
+# Reglas del archivo:
+#   - Solo hechos estables: ids, orgs, repos, estado de ciclo de vida, fechas.
+#   - NUNCA claves, contraseñas, connection strings ni tokens.
+#   - NO se copian costos ni estado en vivo (healthy, pausado por inactividad, uso):
+#     se consultan por MCP o en la factura. Copiados, envejecen.
+#   - NO se registran versiones de plugins: `enabledPlugins` no fija versión; cada repo
+#     usa la que publica el marketplace. La versión real se lee con `claude plugin list`.
+#   - Lo no comprobado lleva `verificado: false` y una nota que dice por qué (regla 3).
+#   - Se edita SOLO desde la sesión de la fábrica (regla 18). La skill
+#     `alta-de-proyecto-en-la-fabrica` devuelve la entrada lista en su reporte (Fase 6);
+#     la skill `auditar-registro` de este repo la cruza contra los MCP.
+#
+# Esquema de cada entrada:
+#   id:            slug estable, igual al nombre del repo cuando se puede
+#   nombre:        nombre visible
+#   cliente:       a quién se imputa el costo ("Tecnowork (interno)" si es propio)
+#   repo:          owner/repo en GitHub
+#   estado:        desarrollo | produccion | pausado | baja
+#   alta:          AAAA-MM-DD (primera vez que ocupó un recurso)
+#   usa_fabrica:   true | false
+#   plugins:       lista de enabledPlugins del .claude/settings.json del repo (sin versión)
+#   recursos:
+#     supabase:    { org, ref, region }     o null
+#     vercel:      { team, project, id }    o null
+#     railway:     { workspace, project, id } o null
+#     dominios:    [ ... ]
+#   verificado:    true | false
+#   verificado_el: AAAA-MM-DD
+#   notas:         lo que falta confirmar, o decisiones propias del proyecto
+
+actualizado: 2026-09-16
+
+# Cobertura de los MCP al 2026-09-16 (lo que la auditoría puede y no puede ver):
+cobertura_mcp:
+  supabase: "Solo la org 'Tecnowork Desarrollo' (zipxqtspphmwulgzjuir, plan free). La org de producción no es visible: todo recurso de prod en Supabase se verifica a mano en el panel."
+  vercel: "Equipo 'TecnoWork's projects' (team_1k0EXFbHaOetjUYfkQ6xo9M5, plan pro)."
+  railway: "Workspace 'gittecnowork's Projects' (d893ce61-c251-40a5-bba8-b3efd47a270a). El plan no lo expone el MCP."
+
+proyectos:
+
+  - id: twfinance
+    nombre: TW Finance
+    cliente: "Tecnowork (interno)"
+    repo: gittecnowork/twfinance
+    estado: desarrollo
+    alta: 2026-07-13
+    usa_fabrica: true
+    plugins:
+      - software-factory@tecnowork
+      - stack-next-nest-prisma@tecnowork
+      - tw-finance@tecnowork
+    recursos:
+      supabase: null
+      vercel:
+        team: "TecnoWork's projects"
+        project: twfinance-web
+        id: prj_8QOB5DNxU7XcgHMGhgaZRBhIhfrS
+      railway:
+        workspace: "gittecnowork's Projects"
+        project: TW Finance
+        id: ee07ff28-c0b3-4312-b5a3-39fa1350aaff
+      dominios: []
+    verificado: false
+    verificado_el: 2026-09-16
+    notas: >
+      Vercel y Railway vistos por MCP. La base no aparece en la org 'Tecnowork Desarrollo';
+      el doc 06 dice que corre en Docker local: sin confirmar. Cliente y lista de plugins
+      tomados del doc 02 y de los overlays existentes: confirmar contra el
+      .claude/settings.json del repo. Alta = creación del proyecto en Railway.
+
+  - id: power-center
+    nombre: Power Center
+    cliente: "sin confirmar"
+    repo: gittecnowork/power-center
+    estado: desarrollo
+    alta: 2026-09-16
+    usa_fabrica: false
+    plugins: []
+    recursos:
+      supabase:
+        org: "Tecnowork Desarrollo"
+        ref: cmzwkxbtlyfworiyssfp
+        region: sa-east-1
+      vercel:
+        team: "TecnoWork's projects"
+        project: power-center
+        id: prj_ojRoXkjygnVx3znWDKXkeLhdqv6a
+      railway: null
+      dominios: []
+    verificado: false
+    verificado_el: 2026-09-16
+    notas: >
+      Supabase y Vercel vistos por MCP. Ocupa 1 de los 2 lugares Free de Supabase.
+      usa_fabrica y cliente sin confirmar: el repo tiene skills propias de Power Punto fuera
+      de la fábrica.
+
+  - id: app-tw-qr-generator
+    nombre: TecnoWork Registro (QR)
+    cliente: "Tecnowork (interno)"
+    repo: gittecnowork/app-tw-qr-generator
+    estado: produccion
+    alta: 2026-05-29
+    usa_fabrica: false
+    plugins: []
+    recursos:
+      supabase: null
+      vercel:
+        team: "TecnoWork's projects"
+        project: tecnowork-registro
+        id: prj_q4UriuE0bXQAgBK3YKsLlcV6yegA
+      railway: null
+      dominios: []
+    verificado: false
+    verificado_el: 2026-09-16
+    notas: >
+      Vercel visto por MCP. Estado 'produccion' y cliente sin confirmar. El backend
+      (Apps Script + Google Sheets) no ocupa recursos de las cuentas registradas acá.
+
+  - id: tw-printer
+    nombre: TW Printer
+    cliente: "sin confirmar"
+    repo: "sin confirmar"
+    estado: produccion
+    alta: "sin confirmar"
+    usa_fabrica: false
+    plugins: []
+    recursos:
+      supabase:
+        org: TecnoworkIA
+        ref: "sin confirmar"
+        region: "sin confirmar"
+      vercel: null
+      railway: null
+      dominios: []
+    verificado: false
+    verificado_el: 2026-09-16
+    notas: >
+      Solo figura en el doc 06 como proyecto en producción en la org Pro de Supabase.
+      No aparece en ningún MCP: completar desde el panel de Supabase.

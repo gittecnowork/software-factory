@@ -13,7 +13,7 @@ Este repositorio es además un **marketplace de plugins** de Claude Code
 
 | Plugin | Contenido |
 |---|---|
-| `software-factory` v0.5.3 | 5 agentes, 4 skills, 1 hook |
+| `software-factory` v0.6.0 | 5 agentes, 4 skills, 1 hook |
 | `stack-next-nest-prisma` v0.2.0 | 1 skill: `migrar-postgres-a-supabase-con-prisma` |
 | `tw-finance` | vacío — solo manifiesto y README de alcance |
 
@@ -24,7 +24,7 @@ Este repositorio es además un **marketplace de plugins** de Claude Code
 **Skills** (`plugins/software-factory/skills/`): `contrato-de-traspaso` (cómo se delega trabajo),
 `desplegar-next-en-vercel-monorepo` (validada contra un despliegue real),
 `alta-de-proyecto-en-la-fabrica` (conectar un repo nuevo o existente: marketplace, overlays,
-`.claude/settings.json` y `CLAUDE.md`) y `commitear-con-verificacion` (qué entra de verdad al repo
+`.claude/settings.json`, `CLAUDE.md` y la entrada para el registro de proyectos) y `commitear-con-verificacion` (qué entra de verdad al repo
 antes de commitear, y cómo se confirma contra el remoto después de pushear).
 
 **Hook** (`plugins/software-factory/hooks/`): al editar por primera vez en una sesión un archivo
@@ -39,10 +39,20 @@ lleva un resumen corto que apunta a ella, en vez de una copia completa.
 
 `workflows/` sigue vacío.
 
+**Registro de proyectos** (`registro/proyectos.yaml`): inventario de todo proyecto que ocupa
+recursos de las cuentas de Tecnowork, use la fábrica o no. Sirve para saber qué repos afecta un
+cambio a un plugin, a qué proyecto corresponde cada costo, y qué recursos quedaron sin dueño. Se
+edita solo desde la sesión de este repo (regla 18): la skill de alta devuelve la entrada, y la
+skill local `auditar-registro` (`.claude/skills/`, carga solo en este repo) la compara contra
+Supabase, Vercel y Railway.
+
 ## Estructura
 
 ```
 .claude-plugin/marketplace.json   Catálogo: qué plugins publica este repo.
+.claude/skills/    Skills que solo aplican a este repo (auditar-registro).
+registro/
+  proyectos.yaml   Inventario de proyectos y de sus recursos.
 docs/
   decisiones/      Una decisión por archivo, con fecha.
   investigacion/   Hallazgos verificados, con fecha y fuente.

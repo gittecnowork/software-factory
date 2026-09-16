@@ -1,6 +1,6 @@
 ---
 name: alta-de-proyecto-en-la-fabrica
-description: "Conectar un repo a la fábrica: agregar el marketplace, elegir qué overlays instalar, versionar el .claude/settings.json y escribir o corregir el CLAUDE.md del proyecto. Usar al conectar un repo nuevo o existente a la fábrica, o cuando un proyecto ya conectado 'no ve' los agentes o las skills que debería."
+description: "Conectar un repo a la fábrica: agregar el marketplace, elegir qué overlays instalar, versionar el .claude/settings.json y escribir o corregir el CLAUDE.md del proyecto. Usar al conectar un repo nuevo o existente a la fábrica, o cuando un proyecto ya conectado 'no ve' los agentes o las skills que debería. Cierra con la entrada para el registro de proyectos de la fábrica."
 ---
 
 # Alta de un proyecto en la fábrica
@@ -20,6 +20,9 @@ Y corregida otra vez el mismo día contra el CLI real, corriéndolo: `claude plu
 etiquetado. `update` e `install` sí lo aceptan y asumen `user` sin él. La regla 17 los trataba a los
 tres igual y esta skill lo había copiado; se comprobó con `claude plugin list --help`,
 `update --help` e `install --help` en la máquina de trabajo.
+
+Ampliada el 2026-09-16 con la Fase 6: toda alta termina con la entrada para
+`registro/proyectos.yaml` del repo de la fábrica.
 
 ## Lo que ordena todo
 
@@ -188,10 +191,42 @@ en la fábrica.
 
 ---
 
+## Fase 6 — Entrada para el registro de proyectos
+
+La fábrica lleva un inventario de todo proyecto que ocupa recursos de Tecnowork:
+`registro/proyectos.yaml`, en el repo `gittecnowork/software-factory`. **Esta fase no escribe
+ese archivo.** Esta skill corre en la sesión del proyecto, y la regla 18 prohíbe que una sesión
+modifique un repo que no es el suyo. Lo que hace esta fase es devolver la entrada lista, como un
+bloque aparte del reporte, para que la sesión de la fábrica la pegue y la audite.
+
+1. Armar la entrada con el esquema que está en la cabecera del registro. Los datos se sacan de
+   este repo y de los MCP, no de memoria:
+   - `repo`: `git remote get-url origin`.
+   - `plugins`: las claves de `enabledPlugins` del `.claude/settings.json` que se escribió en la
+     Fase 3, **sin versión**. `enabledPlugins` no fija versión, así que registrar una sería
+     inventarla.
+   - `recursos`: ids reales, leídos por MCP (Supabase `list_projects`, Vercel `list_projects`,
+     Railway `list-projects`) o del panel. Si un recurso todavía no existe, va `null`. No se
+     completa con el nombre que "va a tener".
+2. Todo dato que no se pudo observar va con `verificado: false` y una nota que dice qué falta y
+   por qué (regla 3). Un campo que no se conoce se escribe `"sin confirmar"`; no se deja vacío
+   ni se adivina.
+3. **Nunca** van claves, contraseñas, connection strings ni tokens, aunque estén a mano en un
+   `.env`. Tampoco costos ni estado en vivo: eso se consulta, no se copia.
+4. Si el proyecto ya tenía una entrada (un alta repetida, o un repo que ya ocupaba recursos antes
+   de conectarse), se devuelve **solo lo que cambia**, con el `id` existente, y no una entrada
+   nueva.
+
+Salida esperada: un bloque YAML con la entrada (o el cambio) y, debajo, la lista de campos con
+`verificado: false`. El alta no se da por cerrada sin ese bloque.
+
+---
+
 ## Repo nuevo vs. repo existente
 
-En un repo **nuevo**, el alta se parte en dos tiempos. Al crearlo: la base (`software-factory`) y
-un `CLAUDE.md` mínimo con lo poco que ya se sabe (qué es, para quién). El overlay de stack recién
+En un repo **nuevo**, el alta se parte en dos tiempos. Al crearlo: la base (`software-factory`),
+un `CLAUDE.md` mínimo con lo poco que ya se sabe (qué es, para quién) y la entrada del registro con
+`estado: desarrollo` y los recursos que ya existan. El overlay de stack recién
 se agrega **después** de la decisión de arquitectura — antes no hay stack que overlayear, y
 elegirlo antes de tiempo es adivinar. En un repo **existente**, las tres fases (relevar, elegir
 capas, escribir) se hacen en la misma alta, porque el stack y la historia ya están.
