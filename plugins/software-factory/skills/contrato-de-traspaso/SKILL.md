@@ -83,3 +83,5 @@ Un subagente corre hasta terminar y no tiene interlocutor. Por eso la regla no e
 - **Ficha que delega el criterio**: pedir "mejorá esto" sin criterios de aceptación. Vuelve el gusto
   de quien ejecutó, y no se puede evaluar.
 - **Evidencia imposible**: exigir una forma de prueba que las herramientas del rol no permiten.
+
+prueba
