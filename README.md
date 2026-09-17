@@ -128,6 +128,12 @@ claude plugin update software-factory@tecnowork --scope user   # el scope donde 
 claude plugin list                  # cada entrada trae su Scope, su Version y su Status
 ```
 
+Y después, **por cada repo del registro con `usa_fabrica: true`**, desde ese repo: `claude plugin
+update <plugin>@tecnowork --scope project` para cada plugin que habilita, y `claude plugin list` ahí
+mismo. El `update --scope user` no toca los installs de scope `project`: cada repo consumidor se
+queda en la versión que tenía, `enabled` y sin ningún error. Así se encontró twfinance en 0.5.3 el
+2026-09-16, después de publicar 0.6.0.
+
 El `--scope` va **siempre explícito en `update` e `install`** (regla 17): sin él asumen `user`, y un
 plugin habilitado desde el `.claude/settings.json` de un repo está a `project`. `list` es la
 excepción —no acepta `--scope`— y por eso es el comando con el que se lee el estado: imprime **todos

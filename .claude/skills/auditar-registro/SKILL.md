@@ -35,6 +35,9 @@ observable", no como "huérfano" ni como "borrado".
 - Supabase: `list_projects` (ref, org, región, estado).
 - Vercel: `list_projects` para cada equipo (id, nombre, repo vinculado).
 - Railway: `list-projects` (id, nombre, workspace).
+- Consumidores de la fábrica en esta máquina: leer `C:\Users\twpow\.claude\plugins\installed_plugins.json`.
+  Cada install de scope `project` trae la ruta del repo y su versión. Es la prueba de qué repos usan
+  la fábrica **en esta máquina**; otra máquina puede tener otros.
 
 ## Paso 3 — Cruce
 
@@ -56,6 +59,11 @@ Controles extra, que salen del doc 06 del Proyecto:
   `free` cuesta desde el día uno. Se reporta primero.
 - **Producción en Vercel Hobby:** el uso comercial está prohibido en ese plan. Si `list_teams`
   devuelve un equipo `hobby` con un proyecto en `produccion`, se reporta.
+- **Consumidores sin registrar o desactualizados:** si un install de scope `project` de un plugin
+  `@tecnowork` corresponde a un repo que no figura en el registro con `usa_fabrica: true`, es un alta
+  sin registrar. Si un install tiene una versión menor que la del `plugin.json` de este repo, hay que
+  correr `claude plugin update <plugin>@tecnowork --scope project` **desde ese repo**. La skill lo
+  informa; no lo corre.
 
 ## Paso 4 — Incorporar una entrada de un alta
 
