@@ -6,14 +6,14 @@ Las decisiones y el estado del trabajo viven en el Proyecto de Claude
 ("Creador de agentes, skills y plugins"), bajo `software-factory/`.
 
 Este repositorio es además un **marketplace de plugins** de Claude Code
-(`.claude-plugin/marketplace.json`). Es **privado**: instalarlo exige acceso de lectura a
-`gittecnowork/software-factory` en GitHub.
+(`.claude-plugin/marketplace.json`). Es **público** desde el 2026-09-17: se instala sin credenciales, y todo lo que se commitea (el
+historial incluido) lo puede leer cualquiera. Por eso no entra nada sensible: ver `CLAUDE.md`.
 
 ## Qué hay hoy
 
 | Plugin | Contenido |
 |---|---|
-| `software-factory` v0.6.0 | 5 agentes, 4 skills, 1 hook |
+| `software-factory` v0.6.1 | 5 agentes, 4 skills, 1 hook |
 | `stack-next-nest-prisma` v0.2.0 | 1 skill: `migrar-postgres-a-supabase-con-prisma` |
 | `tw-finance` | vacío — solo manifiesto y README de alcance |
 
@@ -49,6 +49,10 @@ Supabase, Vercel y Railway.
 ## Estructura
 
 ```
+CLAUDE.md          Condiciones duras para las sesiones de Claude Code en este repo.
+.github/
+  workflows/chequeos.yml         Chequeos automáticos en cada push y cada PR a main.
+  scripts/chequeos-fabrica.mjs   Los chequeos; también se corren a mano antes de pushear.
 .claude-plugin/marketplace.json   Catálogo: qué plugins publica este repo.
 .claude/skills/    Skills que solo aplican a este repo (auditar-registro).
 registro/
@@ -70,7 +74,7 @@ cierto ahí.
 
 ## Cómo se conecta a un proyecto
 
-Una vez, en cada máquina (requiere acceso de lectura al repo privado):
+Una vez, en cada máquina:
 
 ```bash
 claude plugin marketplace add gittecnowork/software-factory
@@ -94,6 +98,33 @@ Y en cada repo de proyecto, versionado en su `.claude/settings.json`:
 ⚠️ Si el `.gitignore` del proyecto ignora `.claude/` entero, hay que dejar de ignorar
 `.claude/settings.json` (y seguir ignorando `.claude/settings.local.json`, que es personal), o la
 configuración no viaja con el repo.
+
+## Chequeos automáticos
+
+Cada push a `main` y cada pull request corren `.github/workflows/chequeos.yml`. No usa IA ni
+secretos, y en un repo público no consume minutos pagos. Falla si:
+
+- `claude plugin validate` falla, en la raíz o en cualquier plugin del marketplace;
+- el `source` de un plugin del marketplace no existe, o su nombre no coincide con su
+  `plugin.json`;
+- una skill o un agente no tiene `name` igual a su carpeta o archivo, o su `description` no está
+  en una sola línea;
+- cambió contenido de un plugin y su `version` no subió (regla 16);
+- la tabla "Qué hay hoy" no coincide con la versión o con la cantidad de agentes, skills y hooks;
+- una línea agregada parece un secreto, una connection string con contraseña o una IP pública.
+
+**Correrlo antes de pushear**, desde la raíz: `node .github/scripts/chequeos-fabrica.mjs`.
+Compara `HEAD` contra `origin/main` y necesita el CLI `claude` en el PATH. En un push a `main`
+avisa **después** del hecho: hasta que exista la protección de rama, un ✘ no frena nada.
+
+Estado: etapa 1 de `docs/decisiones/2026-09-17-revision-automatica-de-contribuciones.md`.
+Probado el 2026-09-17 contra una copia del repo:
+
+- casos buenos y malos, a mano;
+- el historial completo, commit por commit: habría frenado 5 publicaciones sin bump (`c04f9ad`,
+  `972e0c4`, `0336d97`, `615e333`, `466088d`) y 3 desfasajes del README.
+
+**Falta verlo correr en GitHub.**
 
 ## Cuándo se activa cada cosa
 

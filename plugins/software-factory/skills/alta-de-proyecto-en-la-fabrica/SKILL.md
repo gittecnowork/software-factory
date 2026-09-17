@@ -21,6 +21,9 @@ etiquetado. `update` e `install` sí lo aceptan y asumen `user` sin él. La regl
 tres igual y esta skill lo había copiado; se comprobó con `claude plugin list --help`,
 `update --help` e `install --help` en la máquina de trabajo.
 
+Corregida el 2026-09-17: el repo de la fábrica pasó a ser público, y el marketplace ya no pide
+acceso de lectura.
+
 Ampliada el 2026-09-16 con la Fase 6: toda alta termina con la entrada para
 `registro/proyectos.yaml` del repo de la fábrica.
 
@@ -51,8 +54,8 @@ Ampliada el 2026-09-16 con la Fase 6: toda alta termina con la entrada para
 ## Fase 0 — Preflight (gratis)
 
 1. **Marketplace agregado en esta máquina.** `claude plugin marketplace list` tiene que listar
-   `tecnowork`. Si no está: `claude plugin marketplace add gittecnowork/software-factory` (pide
-   acceso de lectura al repo privado).
+   `tecnowork`. Si no está: `claude plugin marketplace add gittecnowork/software-factory`. El repo
+   es público desde el 2026-09-17: no pide credenciales.
 2. **El repo no ignora `.claude/settings.json`.** Abrir el `.gitignore` y buscar `.claude`. Si
    excluye la carpeta entera, no alcanza con agregar una línea `!.claude/settings.json` debajo:
    Git no vuelve a mirar dentro de un directorio ya excluido, así que la excepción no tiene efecto.

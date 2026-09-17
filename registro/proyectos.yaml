@@ -9,6 +9,9 @@
 # Reglas del archivo:
 #   - Solo hechos estables: ids, orgs, repos, estado de ciclo de vida, fechas.
 #   - NUNCA claves, contraseñas, connection strings ni tokens.
+#   - El repo es PÚBLICO (desde 2026-09-17): `cliente` es un alias, nunca el nombre real de una
+#     persona o comercio, ni sus datos de contacto. Sin IPs. Los ids de recursos se aceptan
+#     porque sin credenciales no dan acceso; si eso cambia, el registro se muda a un repo privado.
 #   - NO se copian costos ni estado en vivo (healthy, pausado por inactividad, uso):
 #     se consultan por MCP o en la factura. Copiados, envejecen.
 #   - NO se registran versiones de plugins: `enabledPlugins` no fija versión; cada repo
@@ -36,7 +39,7 @@
 #   verificado_el: AAAA-MM-DD
 #   notas:         lo que falta confirmar, o decisiones propias del proyecto
 
-actualizado: 2026-09-16
+actualizado: 2026-09-17
 
 # Cobertura de los MCP al 2026-09-16 (lo que la auditoría puede y no puede ver):
 cobertura_mcp:
@@ -72,9 +75,10 @@ proyectos:
     verificado_el: 2026-09-16
     notas: >
       Vercel y Railway vistos por MCP. La base no aparece en la org 'Tecnowork Desarrollo';
-      el doc 06 dice que corre en Docker local: sin confirmar. Cliente y lista de plugins
-      tomados del doc 02 y de los overlays existentes: confirmar contra el
-      .claude/settings.json del repo. Alta = creación del proyecto en Railway.
+      el doc 06 dice que corre en Docker local: sin confirmar. Plugins confirmados el
+      2026-09-17 contra el .claude/settings.json del repo y el installed_plugins.json de esta máquina
+      (software-factory 0.6.0, stack-next-nest-prisma 0.2.0, tw-finance 0.1.0, scope project).
+      Cliente sin confirmar. Alta = creación del proyecto en Railway.
 
   - id: power-center
     nombre: Power Center
@@ -145,3 +149,25 @@ proyectos:
     notas: >
       Solo figura en el doc 06 como proyecto en producción en la org Pro de Supabase.
       No aparece en ningún MCP: completar desde el panel de Supabase.
+
+  - id: app-al
+    nombre: app-AL
+    cliente: "sin confirmar"
+    repo: "sin confirmar"
+    estado: desarrollo
+    alta: "sin confirmar"
+    usa_fabrica: true
+    plugins: []
+    recursos:
+      supabase: null
+      vercel: null
+      railway: null
+      dominios: []
+    verificado: false
+    verificado_el: 2026-09-17
+    notas: >
+      Consume la fábrica desde la cuenta 'juanchyhall', en otra máquina: no aparece en el
+      installed_plugins.json de esta máquina. Se sabe por la propuesta de revisión automática
+      que escribió su sesión el 2026-09-17 (docs/decisiones/2026-09-17-revision-automatica-de-contribuciones.md).
+      Aporta por rama + pedido en su docs/pedidos/. Faltan repo, plugins habilitados,
+      recursos y si 'juanchyhall' es colaborador del repo de la fábrica.

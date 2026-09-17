@@ -4,7 +4,7 @@ Fecha: 2026-09-12. Fuente: repo `C:\dev\twfinance` (CLAUDE.md, `compose.producci
 `aplicaciones/api/*`, `.github/workflows/desplegar.yml`, `Caddyfile`) + documentación oficial
 de Vercel, Supabase, Upstash y Railway consultada en la fecha.
 
-## Lo que corre hoy (VPS DonWeb, Ubuntu 22.04, IP 149.50.128.237)
+## Lo que corre hoy (VPS DonWeb, Ubuntu 22.04; IP retirada del texto el 2026-09-17 al hacerse público el repo)
 
 Cinco contenedores en `compose.produccion.yml`, un solo `.env.produccion` en el servidor:
 

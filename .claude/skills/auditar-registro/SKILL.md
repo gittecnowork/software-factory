@@ -35,7 +35,8 @@ observable", no como "huérfano" ni como "borrado".
 - Supabase: `list_projects` (ref, org, región, estado).
 - Vercel: `list_projects` para cada equipo (id, nombre, repo vinculado).
 - Railway: `list-projects` (id, nombre, workspace).
-- Consumidores de la fábrica en esta máquina: leer `C:\Users\twpow\.claude\plugins\installed_plugins.json`.
+- Consumidores de la fábrica en esta máquina: leer `~/.claude/plugins/installed_plugins.json` (en Windows,
+  `%USERPROFILE%\.claude\plugins\installed_plugins.json`).
   Cada install de scope `project` trae la ruta del repo y su versión. Es la prueba de qué repos usan
   la fábrica **en esta máquina**; otra máquina puede tener otros.
 
