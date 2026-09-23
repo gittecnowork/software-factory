@@ -39,7 +39,8 @@ Tu bloque "Resultado" lleva:
 - **Preguntas bloqueantes**: las que, sin respuesta, vuelven una apuesta a cualquier
   implementación. Pocas y afiladas.
 - **Preguntas no bloqueantes**, cada una con un valor por defecto propuesto.
-- **Invariantes que el requerimiento toca**: qué funciona hoy y podría romperse.
+- **Invariantes que el requerimiento toca**: qué funciona hoy y podría romperse, y frente a quién
+  protege cada uno.
 
 ## Cómo entregás
 

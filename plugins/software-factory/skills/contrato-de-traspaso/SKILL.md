@@ -27,7 +27,11 @@ Siete campos. Ninguno es opcional; "no aplica" es una respuesta válida, omitirl
 2. **Alcance** — qué entra y, explícitamente, **qué queda afuera**. Lo segundo evita más problemas
    que lo primero.
 3. **Insumos** — rutas, archivos, URLs, y qué hay que leer de cada uno. Si algo hay que leerlo
-   completo antes de actuar, decilo con esas palabras.
+   completo antes de actuar, decilo con esas palabras. Una ruta solo sirve si quien ejecuta ve el
+   mismo sistema de archivos que vos: un subagente o una sesión en la nube pueden correr en otra
+   máquina. Si no estás seguro, el primer paso de la ficha es leer un archivo conocido y frenar si
+   no se puede; o los insumos van pegados adentro de la ficha. Y para cada paso que requiera una
+   pantalla o una terminal, la ficha dice **quién lo hace**: el ejecutor o una persona.
 4. **Criterios de aceptación** — observables, cada uno con cómo se comprueba. Si no se puede
    comprobar, no es un criterio.
 5. **Restricciones** — invariantes que no se pueden romper, y **por qué** existen. Sin el porqué,
@@ -73,6 +77,11 @@ Un subagente corre hasta terminar y no tiene interlocutor. Por eso la regla no e
 
 ## Errores que ya pagamos
 
+- **Riesgo sin actor**: presentar como riesgo algo que solo puede ejecutar el propio equipo con un
+  acceso controlado. Infla el reporte, y si el documento lo lee un cliente, le hace dudar de un
+  procedimiento que está bien.
+- **Máquina supuesta**: una ficha para otra sesión que da por hecho qué hay instalado en la máquina
+  de destino. Lo que se sabe de otra máquina va como premisa a verificar, con su comando.
 - **Condición de parada sin alcance**: "frená si encontrás algo falso", en un repo con historia,
   convierte la tarea en una auditoría de toda la documentación. Acotar a lo que invalida *esta*
   tanda o rompe el *próximo* paso.

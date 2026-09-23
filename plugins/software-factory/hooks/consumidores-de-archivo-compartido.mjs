@@ -73,7 +73,10 @@ if (!existsSync(ruta)) process.exit(0);
 
 const nombre = basename(ruta);
 const enWorkflows = /[\\/]\.github[\\/]workflows[\\/][^\\/]+\.ya?ml$/i.test(ruta);
-const esSensible = enWorkflows || SENSIBLES.some((re) => re.test(nombre));
+// Una migración ya escrita puede estar aplicada en una base: editarla no cambia esa base y sí
+// cambia lo que obtiene el próximo reset. Es el archivo compartido más caro de tocar.
+const esMigracion = /[\\/](prisma|supabase)[\\/]migrations[\\/].+\.sql$/i.test(ruta);
+const esSensible = enWorkflows || esMigracion || SENSIBLES.some((re) => re.test(nombre));
 if (!esSensible) process.exit(0);
 
 // Un solo aviso por archivo y por sesión.
@@ -93,6 +96,18 @@ try {
   limpiarViejas(raiz);
 } catch {
   process.exit(0); // si no se puede marcar, no bloquear en bucle
+}
+
+if (esMigracion) {
+  process.stderr.write(
+    `"${nombre}" es una migración que ya existe: puede estar aplicada en una o más bases.\n\n` +
+    `Editarla no cambia esas bases, y sí cambia lo que obtiene el próximo reset o un entorno nuevo. ` +
+    `Antes de tocarla, confirmá si ya se aplicó en algún entorno; si se aplicó, el cambio va en ` +
+    `una migración nueva.\n\n` +
+    `Si igual corresponde editarla, repetí la edición: este aviso sale una sola vez por archivo y ` +
+    `por sesión.\n`,
+  );
+  process.exit(2);
 }
 
 process.stderr.write(

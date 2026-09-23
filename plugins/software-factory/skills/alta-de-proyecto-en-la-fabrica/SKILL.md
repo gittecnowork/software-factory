@@ -21,6 +21,10 @@ etiquetado. `update` e `install` sí lo aceptan y asumen `user` sin él. La regl
 tres igual y esta skill lo había copiado; se comprobó con `claude plugin list --help`,
 `update --help` e `install --help` en la máquina de trabajo.
 
+Corregida el 2026-09-23 con la medición de la 0.6.2 (`docs/investigacion/2026-09-23-vias-de-actualizacion-del-plugin.md`):
+hay dos vías de instalación, ninguna trajo sola la versión nueva, y el mismo repo puede quedar
+instalado dos veces según la mayúscula de la unidad. Se sumó el caso del `CLAUDE.md` ignorado.
+
 Ampliada el 2026-09-17: la Fase 0 activa la actualización automática del marketplace, que en
 los marketplaces de terceros viene apagada.
 
@@ -62,20 +66,20 @@ Ampliada el 2026-09-16 con la Fase 6: toda alta termina con la entrada para
    no el del repo. Un mismo repo agregado con otro nombre —se vio `software-factory` en una máquina
    donde se agregó desde la app de escritorio— no resuelve `...@tecnowork`. Si el nombre no
    coincide, esa es la causa antes que cualquier otra.
-   Además, la app de escritorio tiene su propia lista de plugins y su propio diálogo "Administrar
-   mercados", con un toggle de sincronización aparte. Son superficies distintas del mismo repo: al
-   diagnosticar, decir por cuál se instaló. Si no está: `claude plugin marketplace add gittecnowork/software-factory`. El repo
+   Además existe una **segunda vía**: el plugin de la cuenta de claude.ai, que se administra en la
+   app de escritorio (Plugins y "Administrar mercados") y es el que usa Cowork. Ahí el marketplace
+   se llama `software-factory`. Claude Code también lo ve, como `software-factory@synced`, y lo deja
+   sin cargar si hay uno local con el mismo nombre. Al diagnosticar, decir por qué vía se instaló. Si no está: `claude plugin marketplace add gittecnowork/software-factory`. El repo
    es público desde el 2026-09-17: no pide credenciales.
 
-   Con el marketplace agregado, **activar su actualización automática** en esta máquina:
-   `/plugin` → Marketplaces → `tecnowork` → Enable auto-update.
-   - [doc] En los marketplaces de terceros viene apagada. Sin este paso, la máquina se queda con la
-     versión que instaló hasta que alguien corra `update` a mano, y no da ningún error.
-   - Con la actualización activa, el chequeo corre en segundo plano, hasta 10 minutos después de
-     abrir la sesión. La sesión abierta sigue con la versión que cargó, y un aviso pide
-     `/reload-plugins`.
-   - Está sin verificar si alcanza también a los installs de scope `project` (README, "No
-     verificado todavía"). Mientras tanto, la Fase 5 sigue siendo la prueba.
+   Con el marketplace agregado, **activar la actualización automática** de las dos vías: en la
+   terminal, `/plugin` → Marketplaces → `tecnowork` → Enable auto-update (queda marcado con
+   asteriscos en la lista); en la app, Administrar mercados → `software-factory` → Sincronizar
+   automáticamente.
+   - [doc] En los marketplaces de terceros viene apagada. Sin activarla, la máquina se queda con la
+     versión que instaló y no da ningún error.
+   - [obs, 2026-09-23] **No alcanza con activarla.** Ninguna de las dos vías trajo sola la 0.6.2 en
+     la ventana medida. Cada publicación se cierra con la actualización a mano de la Fase 5.
 2. **El repo no ignora `.claude/settings.json`.** Abrir el `.gitignore` y buscar `.claude`. Si
    excluye la carpeta entera, no alcanza con agregar una línea `!.claude/settings.json` debajo:
    Git no vuelve a mirar dentro de un directorio ya excluido, así que la excepción no tiene efecto.
@@ -93,7 +97,13 @@ Ampliada el 2026-09-16 con la Fase 6: toda alta termina con la entrada para
    0** con cualquier patrón que matchee, incluida una negación (`!...`), así que un match no prueba
    que el archivo siga ignorado. Mirar qué línea imprime (si empieza con `!`, no está ignorado) o,
    más directo, `git add -n .claude/settings.json`: si lo lista para agregar, quedó bien.
-3. **Si ya existe `CLAUDE.md`, leerlo entero antes de tocar nada.** Un alta no es la oportunidad
+3. **El repo no ignora `CLAUDE.md`.** `git add -n CLAUDE.md`: si responde que está ignorado,
+   frenar y preguntar por qué antes de la Fase 4. Si el motivo es que el archivo guarda datos que
+   no pueden versionarse, la salida es separar: los hechos e invariantes van a un `CLAUDE.md`
+   versionado, y lo privado a un archivo local ignorado. Un `CLAUDE.md` que no viaja con el código
+   deja a cada máquina con invariantes distintos, y a cualquier referencia "ver CLAUDE.md" apuntando
+   a nada.
+4. **Si ya existe `CLAUDE.md`, leerlo entero antes de tocar nada.** Un alta no es la oportunidad
    para reescribirlo: es para no contradecirlo. Si algo de lo que dice ya no es cierto, es un
    hallazgo para el reporte, no una licencia para reescribir de paso.
 
@@ -262,7 +272,10 @@ capas, escribir) se hacen en la misma alta, porque el stack y la historia ya est
 |---|---|
 | El repo tiene `.claude/settings.json` bien escrito y la sesión no ve nada | Esta máquina nunca agregó el marketplace `tecnowork`: el marketplace es de la máquina, no del repo. |
 | El `settings.json` declara `...@tecnowork` y la máquina no ve nada | El marketplace está agregado con otro nombre en esa máquina (por ejemplo `software-factory`, si se agregó desde la app de escritorio). El nombre del marketplace es local a la máquina. |
-| Se publicó una versión nueva y una máquina sigue con la anterior, sin ningún error | `tecnowork` es un marketplace de terceros y su actualización automática viene apagada. Se activa en `/plugin` → Marketplaces, o se actualiza a mano con `marketplace update` + `update --scope`. Sin bump de versión no llega nada por ninguno de los dos caminos. |
+| Se publicó una versión nueva y una máquina sigue con la anterior, sin ningún error | Ninguna de las dos vías actualiza sola de forma confiable. Vía terminal: `claude plugin update <plugin>@tecnowork --scope <x>`, que además refresca el marketplace. Vía cuenta (Cowork): Administrar mercados → Buscar actualizaciones, ficha → Actualizar, y una conversación nueva. Sin bump de versión no llega nada por ninguna. |
+| `claude plugin list` muestra dos entradas de scope `project` para el mismo repo, con versiones distintas | La carpeta se abrió como `c:\...` y como `C:\...`. Claude Code guarda la ruta como texto y crea un install por cada forma. Un `update` alcanza solo a una; correrlo desde la carpeta escrita de las dos maneras. |
+| Cowork sigue usando la versión vieja después de actualizar en la app | Los plugins se cargan al abrir la conversación. Hace falta una conversación nueva. |
+| El `CLAUDE.md` existe, la sesión lo lee, y en otra máquina o en un clon limpio los invariantes no están | El `.gitignore` excluye `CLAUDE.md`. No da error: simplemente nunca se commitea. |
 | Se agregó `!.claude/settings.json` al `.gitignore` y sigue sin versionarse | El directorio `.claude/` estaba excluido entero: Git no evalúa excepciones dentro de una carpeta ya ignorada. Hay que excluir por archivo (`.claude/*` + `!archivo`), no por carpeta. |
 | Un overlay listado en `enabledPlugins` no aparece en `claude plugin list` | `list` muestra todos los scopes, así que si no está ahí no está en ninguno: puede hacer falta instalarlo además, con `install --scope project`. Distinto es si el síntoma vino de un `update`: ahí lo primero a descartar es el `--scope` faltante. |
 | `claude plugin list --scope project` responde `error: unknown option '--scope'` | `list` no acepta `--scope`, a diferencia de `update` e `install`. Correrlo sin la opción: ya lista todos los scopes, etiquetados. |

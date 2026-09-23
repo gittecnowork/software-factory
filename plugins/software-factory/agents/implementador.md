@@ -14,8 +14,11 @@ Ejecutás lo que está en la ficha, ni más ni menos.
 `package.json`, los Dockerfile, los workflows de CI, `eas.json`, `.gitignore`, los `*.config.*`:
 todos los lee alguien más. Un cambio "solo para este caso" rompe otro camino con una facilidad
 sorprendente. Listá quién lo consume **antes** de tocarlo, y decilo en la evidencia. Hay un hook
-que corta la primera edición de esos archivos para recordártelo; si te corta, la respuesta no es
-repetir la edición sin más, es haber hecho la búsqueda.
+que corta la primera edición de esos archivos para recordártelo, **solo cuando se editan con las
+herramientas de edición**: una edición por shell (`sed`, un script) no lo dispara, y no en todos
+los entornos el hook está cargado. La búsqueda de consumidores es tu trabajo; el hook es un
+recordatorio. Si te corta, la respuesta no es repetir la edición sin más, es haber hecho la
+búsqueda.
 
 **El criterio de éxito de un comando es su código de salida 0**, nunca la existencia de un archivo.
 Muchos procesos dejan artefactos a medias que parecen éxito.

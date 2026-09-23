@@ -13,7 +13,7 @@ historial incluido) lo puede leer cualquiera. Por eso no entra nada sensible: ve
 
 | Plugin | Contenido |
 |---|---|
-| `software-factory` v0.6.2 | 5 agentes, 4 skills, 1 hook |
+| `software-factory` v0.7.0 | 5 agentes, 5 skills, 1 hook |
 | `stack-next-nest-prisma` v0.2.0 | 1 skill: `migrar-postgres-a-supabase-con-prisma` |
 | `tw-finance` | vacío — solo manifiesto y README de alcance |
 
@@ -24,13 +24,18 @@ historial incluido) lo puede leer cualquiera. Por eso no entra nada sensible: ve
 **Skills** (`plugins/software-factory/skills/`): `contrato-de-traspaso` (cómo se delega trabajo),
 `desplegar-next-en-vercel-monorepo` (validada contra un despliegue real),
 `alta-de-proyecto-en-la-fabrica` (conectar un repo nuevo o existente: marketplace, overlays,
-`.claude/settings.json`, `CLAUDE.md` y la entrada para el registro de proyectos) y `commitear-con-verificacion` (qué entra de verdad al repo
-antes de commitear, y cómo se confirma contra el remoto después de pushear).
+`.claude/settings.json`, `CLAUDE.md` y la entrada para el registro de proyectos), `commitear-con-verificacion` (qué entra de verdad al repo
+antes de commitear, y cómo se confirma contra el remoto después de pushear) y
+`aportar-a-la-fabrica` (cómo un proyecto devuelve aprendizajes sin exponer nada propio en este repo
+público).
 
 **Hook** (`plugins/software-factory/hooks/`): al editar por primera vez en una sesión un archivo
 **que ya existe** y que otros consumen (`turbo.json`, `package.json`, `Dockerfile` y sus variantes,
-workflows de CI, `eas.json`, cualquier `*.config.*`, `schema.prisma`, lockfiles), corta una vez y
-pide listar quién lo usa. La segunda edición pasa: es un badén, no un muro. Crear un archivo nuevo
+workflows de CI, `eas.json`, cualquier `*.config.*`, `schema.prisma`, lockfiles, y las migraciones
+ya escritas de `prisma/migrations` y `supabase/migrations`), corta una vez y
+pide listar quién lo usa. Solo ve ediciones hechas con las herramientas de edición: una edición por
+shell no lo dispara. Por este hook, la app de escritorio muestra el plugin con el aviso "Puede
+ejecutar código sin preguntar": es un script de Node que lee la ruta del archivo y no hace nada más. La segunda edición pasa: es un badén, no un muro. Crear un archivo nuevo
 nunca se bloquea, porque todavía no tiene consumidores. Escrito en Node para no depender de bash ni
 de `jq`; normaliza mayúsculas en Windows y limpia sus marcas a los dos días.
 
@@ -151,11 +156,9 @@ instalar.
 El ciclo completo, después de cualquier cambio al plugin:
 
 ```bash
-claude plugin validate .
-claude plugin validate ./plugins/software-factory
-# subir la version en plugin.json (regla 16), publicar, y recién entonces:
-claude plugin marketplace update tecnowork
-claude plugin update software-factory@tecnowork --scope user   # el scope donde está instalado
+node .github/scripts/chequeos-fabrica.mjs    # incluye claude plugin validate de cada plugin
+# subir la version en plugin.json (regla 16), commitear, pushear, y recién entonces, en cada máquina:
+claude plugin update software-factory@tecnowork --scope user   # refresca el marketplace solo
 claude plugin list                  # cada entrada trae su Scope, su Version y su Status
 ```
 
@@ -163,7 +166,13 @@ Y después, **por cada repo del registro con `usa_fabrica: true`**, desde ese re
 update <plugin>@tecnowork --scope project` para cada plugin que habilita, y `claude plugin list` ahí
 mismo. El `update --scope user` no toca los installs de scope `project`: cada repo consumidor se
 queda en la versión que tenía, `enabled` y sin ningún error. Así se encontró twfinance en 0.5.3 el
-2026-09-16, después de publicar 0.6.0.
+2026-09-16, después de publicar 0.6.0. Si `list` muestra **dos** entradas de scope `project` para el
+mismo repo (`c:\...` y `C:\...`), correr el `update` desde las dos formas de la ruta.
+
+Y por la otra vía, la de la cuenta, que es la que usa **Cowork**: en la app de escritorio,
+Administrar mercados → `software-factory` → Buscar actualizaciones; en la ficha del plugin,
+Actualizar; confirmar la versión en la ficha, y abrir una conversación nueva. El detalle y la
+medición están en `docs/investigacion/2026-09-23-vias-de-actualizacion-del-plugin.md`.
 
 El `--scope` va **siempre explícito en `update` e `install`** (regla 17): sin él asumen `user`, y un
 plugin habilitado desde el `.claude/settings.json` de un repo está a `project`. `list` es la
@@ -198,22 +207,12 @@ solos, sin instalar, sigue pendiente y necesita una máquina que no los tenga.
   - [doc, 2026-09-17] Desde la v2.1.195, un plugin de **fuente externa** (un repo de GitHub o un
     paquete npm) que solo habilita el `settings.json` no carga hasta que se instala.
   - Los plugins de este marketplace son de **ruta relativa**, así que esa regla no cierra el caso.
-- Cómo se actualiza cada máquina. Hay **tres superficies distintas**, y una máquina puede tener
-  más de una:
-  1. **Claude Code (CLI)**: `/plugin` → Marketplaces → Enable auto-update. [doc, 2026-09-17] En
-     marketplaces de terceros viene **apagada**. Corre en segundo plano hasta 10 minutos después
-     de abrir la sesión y solo trae versiones con bump.
-  2. **App de escritorio → Personalizar → Plugins**: acciones por plugin (Desactivar, Buscar
-     actualizaciones, Eliminar).
-  3. **App de escritorio → Administrar mercados**: acciones por marketplace, con su propio toggle
-     "Sincronizar automáticamente" y un campo "Commit sincronizado".
-  Sin verificar: si la automática de (1) alcanza a los installs de scope `project`, y si (3) hace
-  polling o solo revisa al abrir la app. Si (1) alcanza, se simplifica la condición 3 de
-  `CLAUDE.md`.
-  - [obs, 2026-09-18] Intento en la computadora de pruebas: **no concluyente**. Esa máquina no
-    tiene `tecnowork` por CLI, y no hubo publicación coordinada durante la sesión. Lo único
-    observado ahí: el marketplace agregado desde la app, apuntando a este repo, con
-    "Sincronizar automáticamente" ya activado, y un chequeo manual que no encontró nada pendiente.
+- Si la actualización automática, **activada**, trae sola una versión nueva. Hay dos vías (el
+  marketplace local de Claude Code y el plugin de la cuenta, que usa Cowork) y en la medición del
+  2026-09-23 ninguna la trajo sola: la local tenía el automático apagado, y la de la cuenta no
+  actualizó en la ventana observada con el suyo activado. Mientras tanto, cada publicación se cierra
+  a mano por las dos vías (arriba). Medición y detalle:
+  `docs/investigacion/2026-09-23-vias-de-actualizacion-del-plugin.md`.
 - **El nombre del marketplace es local a cada máquina.** `enabledPlugins` usa
   `plugin@marketplace`, y ese nombre es el que tiene el marketplace **en esa máquina**. En la
   computadora de pruebas, el mismo repo figura agregado como `software-factory`, no como
@@ -224,6 +223,13 @@ solos, sin instalar, sigue pendiente y necesita una máquina que no los tenga.
   ninguno.
 - El overlay `tw-finance`, que sigue vacío: no tiene contenido que pueda cargar, así que no hay nada
   que verificar todavía. (Lo del overlay `stack-next-nest-prisma` ya se verificó: está arriba.)
+
+## Cómo aporta un proyecto
+
+Por rama y PR contra `main`, con una carpeta `docs/pedidos/AAAA-MM-DD-<slug-neutro>/` y sin tocar
+`plugins/`, `registro/`, `README.md` ni `CLAUDE.md`. El procedimiento completo, con la prueba de
+anonimato, está en la skill `software-factory:aportar-a-la-fabrica`. La fábrica decide pieza por
+pieza en `docs/decisiones/` y reescribe lo aceptado; nada se aplica literal (regla 15).
 
 ## Reglas de la fábrica
 
@@ -256,3 +262,4 @@ Las reglas **20 a 23, y la 25 y la 26**, son sobre **cómo tiene que estar escri
 24. **Cómo se comporta una herramienta se comprueba contra la herramienta, no se deduce.** `--help` primero, que es gratis, y una corrida real después. No se infiere de la simetría con un subcomando hermano —que `update` acepte `--scope` no dice nada de `list`—, ni de un síntoma, ni de que la documentación propia lo venga diciendo hace rato. Costo pagado: la regla 17 se publicó afirmando que `claude plugin list` acepta `--scope`. No lo acepta: responde `error: unknown option '--scope'`, imprime todos los scopes de una con `Scope`, `Version` y `Status` por entrada, y lo que cambia según dónde se lo corra es el `Status`, no qué entradas salen. La afirmación falsa sobrevivió a varias lecturas del texto y cayó recién al **correr** el comando; para entonces ya estaba copiada en una skill. La regla 12 es el caso particular de esta para plugins, y la skill `commitear-con-verificacion` es el ejemplo de hacerlo bien: su tabla de `git add -n` se armó corriendo cada caso en un repo desechable, no de memoria.
 25. **El bloque de correcciones manda sobre el resto del pedido, y descubrir tarde obliga igual que descubrir temprano.** La regla 20 ya frena cuando no se sostiene una premisa sobre el estado de un repo; esta la extiende en dos direcciones. Primero, vale para **cualquier** afirmación del pedido y a cualquier altura: una parte que se revela falsa recién al ejecutarla no se arregla sobre la marcha ni se ejecuta bajo una interpretación corregida por cuenta propia — se reporta con evidencia y se frena ahí, aunque el resto del pedido siga. Segundo, el bloque de correcciones no es un apéndice del final: es la sección de mayor rango, y un pedido que declara su propia precedencia (regla 21) la declara **por debajo** de él. El límite lo pone la regla 22: un defecto que introdujo el **propio cambio** no se reporta y se deja, se arregla. Frenar es para lo que el pedido afirma; lo que uno rompió se corrige. Costo pagado: la regla 21 ordenó las secciones entre sí pero dejó el bloque de correcciones fuera de la jerarquía, y el ciclo anterior lo trató en consecuencia — cinco correcciones al pedido entregadas como epílogo de un trabajo ya commiteado y pusheado. Dos de ellas señalaban premisas que, atendidas a tiempo, habrían evitado un commit entero.
 26. **Un criterio que solo corre contra contenido ya publicado vuelve la verificación parte del ciclo, no su cierre.** Si al correrlo aparece un error, la regla 16 obliga a subir la versión y publicar de nuevo: sale otro commit, y el criterio se vuelve a correr desde cero. Por eso un pedido que exige "un solo commit" y a la vez un criterio post-publicación se contradice consigo mismo, y la salida esperada se escribe admitiendo varios. Esto **no** es una excepción a la regla 21: si el pedido declaró su orden de precedencia, la condición dura le gana a la forma de la salida y no hay empate que consultar; si no lo declaró, sí hay empate y se pregunta antes de commitear dos veces. Costo pagado: el ciclo de las reglas 20-23 terminó en tres commits —0.5.1, 0.5.2 y 0.5.3— porque correr el criterio de carga destapó dos errores en lo recién publicado, y la regla 16 no admite corregirlos sin bump.
+27. **Un aporte nunca trae lo que permite ubicar o atacar un proyecto real.** Ni el diseño de acceso de una app, ni nombres reales de esquema, rutas o funciones, ni cifras de producción, ni el rubro del cliente, ni cuentas o mails personales en el autor del commit. Buscar nombres propios no alcanza: la prueba es por categoría, y la pregunta de cierre es si alguien que no conoce el proyecto puede ubicarlo o atacarlo con lo que lee. Como el repo es público, la limpieza va **antes del primer push**: un PR cerrado y una rama borrada siguen siendo legibles hasta que GitHub Support los purga. Costo pagado: el primer aporte externo (PR #2, 2026-09-19) pasó una limpieza de nombres y dominios, y aun así contaba con nombres reales cómo se entraba a una app en producción, con el mail personal del autor en el commit. Se cerró sin mergear y se borró la rama; la purga en GitHub queda a cargo del dueño del repo. El procedimiento está en la skill `aportar-a-la-fabrica`.
