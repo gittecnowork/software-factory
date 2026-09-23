@@ -25,6 +25,9 @@ Corregida el 2026-09-23 con la medición de la 0.6.2 (`docs/investigacion/2026-0
 hay dos vías de instalación, ninguna trajo sola la versión nueva, y el mismo repo puede quedar
 instalado dos veces según la mayúscula de la unidad. Se sumó el caso del `CLAUDE.md` ignorado.
 
+Ampliada el 2026-09-23 (0.7.2) con el aviso de `@synced` que muestra `claude plugin list` cuando la
+máquina tiene las dos vías instaladas.
+
 Corregida el 2026-09-23 (0.7.1): la trampa del install duplicado trae el comando que funcionó para
 la forma en minúscula, y la de la versión vieja en una sesión abierta alcanza también a Claude Code.
 
@@ -282,6 +285,7 @@ capas, escribir) se hacen en la misma alta, porque el stack y la historia ya est
 | Se agregó `!.claude/settings.json` al `.gitignore` y sigue sin versionarse | El directorio `.claude/` estaba excluido entero: Git no evalúa excepciones dentro de una carpeta ya ignorada. Hay que excluir por archivo (`.claude/*` + `!archivo`), no por carpeta. |
 | Un overlay listado en `enabledPlugins` no aparece en `claude plugin list` | `list` muestra todos los scopes, así que si no está ahí no está en ninguno: puede hacer falta instalarlo además, con `install --scope project`. Distinto es si el síntoma vino de un `update`: ahí lo primero a descartar es el `--scope` faltante. |
 | `claude plugin list --scope project` responde `error: unknown option '--scope'` | `list` no acepta `--scope`, a diferencia de `update` e `install`. Correrlo sin la opción: ya lista todos los scopes, etiquetados. |
+| `claude plugin list` avisa `"software-factory@synced" from claude.ai not loaded — "software-factory@tecnowork" on this machine has the same name and takes precedence` | No es un error. La copia de la cuenta (vía B, la que usa Cowork) y la instalada por terminal (vía A) se llaman igual, y en Claude Code manda la de la máquina. Cada vía se actualiza por su lado: que Claude Code muestre la versión nueva no dice nada de Cowork, y al revés. |
 | `list` muestra el plugin dos veces con versiones distintas | No es un error: está instalado a `user` y a `project`. Vale el de `project`, que es el que el repo habilita. Leer la entrada equivocada hace creer que el bump no llegó. |
 | `claude plugin update` responde `Plugin X is not installed at scope user` | Error de scope, no de instalación ni de caché. El plugin está a `project`, habilitado por el `.claude/settings.json` del repo. Repetir con `--scope project`. Acá esta lectura casi hace descartar por falsa la regla del bump de versión. |
 | El plugin figura `enabled` **con la versión vieja** y una skill o un agente nuevos no aparecen | El caché local quedó en esa versión: el `plugin.json` no subió de versión cuando se agregó contenido, y ni `marketplace update` ni `plugin update` vuelven a bajarlo. |

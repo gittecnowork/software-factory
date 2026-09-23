@@ -1,7 +1,7 @@
 {
   "name": "software-factory",
   "displayName": "Software Factory",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Roles, contratos de traspaso, skills y puertas de calidad reutilizables para desarrollar aplicaciones con Claude.",
   "author": {
     "name": "Tecnowork"

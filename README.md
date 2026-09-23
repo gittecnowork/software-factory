@@ -13,7 +13,7 @@ historial incluido) lo puede leer cualquiera. Por eso no entra nada sensible: ve
 
 | Plugin | Contenido |
 |---|---|
-| `software-factory` v0.7.1 | 5 agentes, 5 skills, 1 hook |
+| `software-factory` v0.7.2 | 5 agentes, 5 skills, 1 hook |
 | `stack-next-nest-prisma` v0.2.0 | 1 skill: `migrar-postgres-a-supabase-con-prisma` |
 | `tw-finance` | vacío — solo manifiesto y README de alcance |
 
