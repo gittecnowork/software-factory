@@ -19,7 +19,8 @@ mensajes de commit.
 3. **Después de publicar, actualizar a los consumidores.** `update --scope user` no toca los
    installs de scope `project`. Hay que correr `update --scope project` desde cada repo del
    registro con `usa_fabrica: true`. El ciclo completo está en README, "Cómo se comprueba un
-   cambio al plugin".
+   cambio al plugin". Esto sigue así mientras no se verifique que la actualización automática del
+   marketplace alcanza a scope `project` (README, "No verificado todavía").
 4. **Validar no es instalar (reglas 12 y 24).** `claude plugin validate` no alcanza. Un cambio de
    plugin se da por bueno cuando se instaló desde el marketplace y se vio cargar. Cómo se comporta
    una herramienta se comprueba corriéndola, no se deduce.

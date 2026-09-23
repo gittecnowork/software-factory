@@ -1,6 +1,6 @@
 # Decisión: revisión automática de contribuciones a la fábrica
 
-Fecha: 2026-09-17. Estado: **decidido; la etapa 1 está en curso** (ver "Resolución", al final).
+Fecha: 2026-09-17. Estado: **decidido; etapa 1 cerrada** (`f330a06`); etapas 2 y 3 en espera. Ver "Resolución", al final.
 Insumo: la propuesta que escribió la sesión de app-AL (cuenta `juanchyhall`) el 2026-09-17,
 "revisión automática de contribuciones externas".
 Método: skill `refutar-antes-de-construir`.
@@ -13,12 +13,12 @@ Cómo se etiqueta cada dato (regla 3):
 
 ## 0. Estado real del que se parte [obs, 2026-09-17]
 
-- **Repo:** `gittecnowork/software-factory` es privado y pertenece a una **cuenta personal** (no a
-  una organización).
+- **Repo:** `gittecnowork/software-factory` era privado al momento del análisis (ese mismo día pasó
+  a público: ver Resolución) y pertenece a una **cuenta personal**, no a una organización.
 - **Ramas y PRs:** una sola rama, `main`, con `protected: false`. **Cero pull requests**, ni
   abiertos ni cerrados. Todos los cambios hasta hoy se pushearon directo a `main`.
-- **Colaboradores:** no se pudieron listar (el MCP devolvió 403). No está confirmado que
-  `juanchyhall` sea colaborador.
+- **Colaboradores:** no se pudieron listar (el MCP devolvió 403). No estaba confirmado quién es
+  `juanchyhall`. La Resolución lo aclara: es Juan.
 - **Consumidores en esta máquina:** según `installed_plugins.json`, solo twfinance. app-AL
   consume la fábrica desde otra cuenta y otra máquina, así que no aparece ahí.
 
@@ -120,7 +120,7 @@ apoyar nada en que corran.
 | Opción | Costo mensual | Trabajo | Qué da | Qué pierde |
 |---|---|---|---|---|
 | **A. Propuesta completa** (tres jobs en cada push al PR) | Minutos de Actions + tokens del revisor y del verificador en cada push | Alto: tres jobs y un PR de prueba | Revisión con los roles de la fábrica | Gasta por push; sin protección de ramas, los checks no frenan nada |
-| **B. Por etapas** (recomendada) | Etapa 1: ~USD 0. [doc] Una cuenta Free trae 2.000 minutos/mes en repos privados; un chequeo de shell dura pocos minutos | Etapa 1: bajo | El chequeo de la regla 16 en cada push y cada PR, hoy mismo | La revisión con IA llega cuando haya PRs reales que revisar |
+| **B. Por etapas** (recomendada, **elegida**) | Etapa 1: USD 0. [doc] En repos públicos los minutos de Actions no se cobran; en privados, una cuenta Free trae 2.000 por mes | Etapa 1: bajo | El chequeo de la regla 16 en cada push y cada PR, hoy mismo | La revisión con IA llega cuando haya PRs reales que revisar |
 | **C. Code Review administrado de Anthropic** | [doc] USD 15-25 por revisión, cobrado aparte | Casi nulo | Revisión con varios agentes; lee `REVIEW.md` | [doc] Solo planes Team y Enterprise. Su check termina siempre "neutral" y nunca bloquea. No conoce los roles de la fábrica |
 | **D. Nada** (seguir con la skill local) | USD 0 | Nulo | — | Depende de que alguien se acuerde. Ya falló tres veces (0.5.1 a 0.5.3) |
 
@@ -227,8 +227,10 @@ Estas respuestas mandan sobre lo que dicen las secciones anteriores.
      connection strings) y no apareció ninguno.
 3. **`juanchyhall` es Juan**, desde otra computadora de pruebas. No hay terceros con escritura, y
    el riesgo de la sección 5 se reduce a los PR de forks. [doc] Esos PR no reciben secretos.
-4. **Etapa 1: sí.** Se implementa con `.github/workflows/chequeos.yml` y
+4. **Etapa 1: sí, y cerrada.** Se implementó con `.github/workflows/chequeos.yml` y
    `.github/scripts/chequeos-fabrica.mjs`.
+   - [obs] Commit `f330a06`: la corrida en GitHub dio verde. El PR #1 de prueba, sin bump, dio
+     rojo con `[bump] software-factory`, y se cerró sin mergear.
    - [obs] `claude plugin validate` corre sin autenticación: probado con un HOME vacío, CLI
      2.1.274.
    - [obs] Pasado por el historial completo, commit por commit, el script marca 5 publicaciones

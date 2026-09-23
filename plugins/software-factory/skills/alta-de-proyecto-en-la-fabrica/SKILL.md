@@ -21,6 +21,9 @@ etiquetado. `update` e `install` sí lo aceptan y asumen `user` sin él. La regl
 tres igual y esta skill lo había copiado; se comprobó con `claude plugin list --help`,
 `update --help` e `install --help` en la máquina de trabajo.
 
+Ampliada el 2026-09-17: la Fase 0 activa la actualización automática del marketplace, que en
+los marketplaces de terceros viene apagada.
+
 Corregida el 2026-09-17: el repo de la fábrica pasó a ser público, y el marketplace ya no pide
 acceso de lectura.
 
@@ -53,9 +56,26 @@ Ampliada el 2026-09-16 con la Fase 6: toda alta termina con la entrada para
 
 ## Fase 0 — Preflight (gratis)
 
-1. **Marketplace agregado en esta máquina.** `claude plugin marketplace list` tiene que listar
-   `tecnowork`. Si no está: `claude plugin marketplace add gittecnowork/software-factory`. El repo
+1. **Marketplace agregado en esta máquina, y con el nombre que usa el `settings.json`.**
+   `claude plugin marketplace list` tiene que listar `tecnowork`. El nombre importa: `enabledPlugins`
+   declara `plugin@marketplace`, y ese nombre es el que el marketplace tiene **en esta máquina**,
+   no el del repo. Un mismo repo agregado con otro nombre —se vio `software-factory` en una máquina
+   donde se agregó desde la app de escritorio— no resuelve `...@tecnowork`. Si el nombre no
+   coincide, esa es la causa antes que cualquier otra.
+   Además, la app de escritorio tiene su propia lista de plugins y su propio diálogo "Administrar
+   mercados", con un toggle de sincronización aparte. Son superficies distintas del mismo repo: al
+   diagnosticar, decir por cuál se instaló. Si no está: `claude plugin marketplace add gittecnowork/software-factory`. El repo
    es público desde el 2026-09-17: no pide credenciales.
+
+   Con el marketplace agregado, **activar su actualización automática** en esta máquina:
+   `/plugin` → Marketplaces → `tecnowork` → Enable auto-update.
+   - [doc] En los marketplaces de terceros viene apagada. Sin este paso, la máquina se queda con la
+     versión que instaló hasta que alguien corra `update` a mano, y no da ningún error.
+   - Con la actualización activa, el chequeo corre en segundo plano, hasta 10 minutos después de
+     abrir la sesión. La sesión abierta sigue con la versión que cargó, y un aviso pide
+     `/reload-plugins`.
+   - Está sin verificar si alcanza también a los installs de scope `project` (README, "No
+     verificado todavía"). Mientras tanto, la Fase 5 sigue siendo la prueba.
 2. **El repo no ignora `.claude/settings.json`.** Abrir el `.gitignore` y buscar `.claude`. Si
    excluye la carpeta entera, no alcanza con agregar una línea `!.claude/settings.json` debajo:
    Git no vuelve a mirar dentro de un directorio ya excluido, así que la excepción no tiene efecto.
@@ -241,6 +261,8 @@ capas, escribir) se hacen en la misma alta, porque el stack y la historia ya est
 | Síntoma | Causa real |
 |---|---|
 | El repo tiene `.claude/settings.json` bien escrito y la sesión no ve nada | Esta máquina nunca agregó el marketplace `tecnowork`: el marketplace es de la máquina, no del repo. |
+| El `settings.json` declara `...@tecnowork` y la máquina no ve nada | El marketplace está agregado con otro nombre en esa máquina (por ejemplo `software-factory`, si se agregó desde la app de escritorio). El nombre del marketplace es local a la máquina. |
+| Se publicó una versión nueva y una máquina sigue con la anterior, sin ningún error | `tecnowork` es un marketplace de terceros y su actualización automática viene apagada. Se activa en `/plugin` → Marketplaces, o se actualiza a mano con `marketplace update` + `update --scope`. Sin bump de versión no llega nada por ninguno de los dos caminos. |
 | Se agregó `!.claude/settings.json` al `.gitignore` y sigue sin versionarse | El directorio `.claude/` estaba excluido entero: Git no evalúa excepciones dentro de una carpeta ya ignorada. Hay que excluir por archivo (`.claude/*` + `!archivo`), no por carpeta. |
 | Un overlay listado en `enabledPlugins` no aparece en `claude plugin list` | `list` muestra todos los scopes, así que si no está ahí no está en ninguno: puede hacer falta instalarlo además, con `install --scope project`. Distinto es si el síntoma vino de un `update`: ahí lo primero a descartar es el `--scope` faltante. |
 | `claude plugin list --scope project` responde `error: unknown option '--scope'` | `list` no acepta `--scope`, a diferencia de `update` e `install`. Correrlo sin la opción: ya lista todos los scopes, etiquetados. |

@@ -13,7 +13,7 @@ historial incluido) lo puede leer cualquiera. Por eso no entra nada sensible: ve
 
 | Plugin | Contenido |
 |---|---|
-| `software-factory` v0.6.1 | 5 agentes, 4 skills, 1 hook |
+| `software-factory` v0.6.2 | 5 agentes, 4 skills, 1 hook |
 | `stack-next-nest-prisma` v0.2.0 | 1 skill: `migrar-postgres-a-supabase-con-prisma` |
 | `tw-finance` | vacío — solo manifiesto y README de alcance |
 
@@ -195,6 +195,31 @@ solos, sin instalar, sigue pendiente y necesita una máquina que no los tenga.
 
 - Que `extraKnownMarketplaces` + `enabledPlugins` en un repo habilite los plugins sin intervención:
   se sospecha que Claude Code pide confirmar el marketplace al confiar la carpeta.
+  - [doc, 2026-09-17] Desde la v2.1.195, un plugin de **fuente externa** (un repo de GitHub o un
+    paquete npm) que solo habilita el `settings.json` no carga hasta que se instala.
+  - Los plugins de este marketplace son de **ruta relativa**, así que esa regla no cierra el caso.
+- Cómo se actualiza cada máquina. Hay **tres superficies distintas**, y una máquina puede tener
+  más de una:
+  1. **Claude Code (CLI)**: `/plugin` → Marketplaces → Enable auto-update. [doc, 2026-09-17] En
+     marketplaces de terceros viene **apagada**. Corre en segundo plano hasta 10 minutos después
+     de abrir la sesión y solo trae versiones con bump.
+  2. **App de escritorio → Personalizar → Plugins**: acciones por plugin (Desactivar, Buscar
+     actualizaciones, Eliminar).
+  3. **App de escritorio → Administrar mercados**: acciones por marketplace, con su propio toggle
+     "Sincronizar automáticamente" y un campo "Commit sincronizado".
+  Sin verificar: si la automática de (1) alcanza a los installs de scope `project`, y si (3) hace
+  polling o solo revisa al abrir la app. Si (1) alcanza, se simplifica la condición 3 de
+  `CLAUDE.md`.
+  - [obs, 2026-09-18] Intento en la computadora de pruebas: **no concluyente**. Esa máquina no
+    tiene `tecnowork` por CLI, y no hubo publicación coordinada durante la sesión. Lo único
+    observado ahí: el marketplace agregado desde la app, apuntando a este repo, con
+    "Sincronizar automáticamente" ya activado, y un chequeo manual que no encontró nada pendiente.
+- **El nombre del marketplace es local a cada máquina.** `enabledPlugins` usa
+  `plugin@marketplace`, y ese nombre es el que tiene el marketplace **en esa máquina**. En la
+  computadora de pruebas, el mismo repo figura agregado como `software-factory`, no como
+  `tecnowork`. Sin verificar: si un repo cuyo `settings.json` declara `...@tecnowork` carga en una
+  máquina donde el marketplace se llama distinto. Es lo primero a mirar cuando "el plugin no
+  aparece" en una máquina nueva.
 - Que un plugin cargue `workflows/`. Está en la referencia oficial de plugins; acá no se ejecutó
   ninguno.
 - El overlay `tw-finance`, que sigue vacío: no tiene contenido que pueda cargar, así que no hay nada

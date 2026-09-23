@@ -77,7 +77,7 @@ proyectos:
       Vercel y Railway vistos por MCP. La base no aparece en la org 'Tecnowork Desarrollo';
       el doc 06 dice que corre en Docker local: sin confirmar. Plugins confirmados el
       2026-09-17 contra el .claude/settings.json del repo y el installed_plugins.json de esta máquina
-      (software-factory 0.6.0, stack-next-nest-prisma 0.2.0, tw-finance 0.1.0, scope project).
+      (los tres instalados a scope project).
       Cliente sin confirmar. Alta = creación del proyecto en Railway.
 
   - id: power-center
@@ -166,8 +166,8 @@ proyectos:
     verificado: false
     verificado_el: 2026-09-17
     notas: >
-      Consume la fábrica desde la cuenta 'juanchyhall', en otra máquina: no aparece en el
-      installed_plugins.json de esta máquina. Se sabe por la propuesta de revisión automática
+      Consume la fábrica desde 'juanchyhall', la cuenta de Juan en su computadora de pruebas:
+      no aparece en el installed_plugins.json de esta máquina. Se sabe por la propuesta de revisión automática
       que escribió su sesión el 2026-09-17 (docs/decisiones/2026-09-17-revision-automatica-de-contribuciones.md).
       Aporta por rama + pedido en su docs/pedidos/. Faltan repo, plugins habilitados,
-      recursos y si 'juanchyhall' es colaborador del repo de la fábrica.
+      recursos. Es la máquina donde se prueba la actualización automática (0.6.2).
