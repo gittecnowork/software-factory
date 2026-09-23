@@ -25,6 +25,9 @@ Corregida el 2026-09-23 con la medición de la 0.6.2 (`docs/investigacion/2026-0
 hay dos vías de instalación, ninguna trajo sola la versión nueva, y el mismo repo puede quedar
 instalado dos veces según la mayúscula de la unidad. Se sumó el caso del `CLAUDE.md` ignorado.
 
+Corregida el 2026-09-23 (0.7.1): la trampa del install duplicado trae el comando que funcionó para
+la forma en minúscula, y la de la versión vieja en una sesión abierta alcanza también a Claude Code.
+
 Ampliada el 2026-09-17: la Fase 0 activa la actualización automática del marketplace, que en
 los marketplaces de terceros viene apagada.
 
@@ -273,8 +276,8 @@ capas, escribir) se hacen en la misma alta, porque el stack y la historia ya est
 | El repo tiene `.claude/settings.json` bien escrito y la sesión no ve nada | Esta máquina nunca agregó el marketplace `tecnowork`: el marketplace es de la máquina, no del repo. |
 | El `settings.json` declara `...@tecnowork` y la máquina no ve nada | El marketplace está agregado con otro nombre en esa máquina (por ejemplo `software-factory`, si se agregó desde la app de escritorio). El nombre del marketplace es local a la máquina. |
 | Se publicó una versión nueva y una máquina sigue con la anterior, sin ningún error | Ninguna de las dos vías actualiza sola de forma confiable. Vía terminal: `claude plugin update <plugin>@tecnowork --scope <x>`, que además refresca el marketplace. Vía cuenta (Cowork): Administrar mercados → Buscar actualizaciones, ficha → Actualizar, y una conversación nueva. Sin bump de versión no llega nada por ninguna. |
-| `claude plugin list` muestra dos entradas de scope `project` para el mismo repo, con versiones distintas | La carpeta se abrió como `c:\...` y como `C:\...`. Claude Code guarda la ruta como texto y crea un install por cada forma. Un `update` alcanza solo a una; correrlo desde la carpeta escrita de las dos maneras. |
-| Cowork sigue usando la versión vieja después de actualizar en la app | Los plugins se cargan al abrir la conversación. Hace falta una conversación nueva. |
+| `claude plugin list` muestra dos entradas de scope `project` para el mismo repo, con versiones distintas | La carpeta se abrió como `c:\...` y como `C:\...`. Claude Code guarda la ruta como texto y crea un install por cada forma. Un `update` alcanza solo a una; correrlo desde la carpeta escrita de las dos maneras. Para la forma en minúscula, desde PowerShell: `cmd.exe /c 'cd /d c:\dev\<repo> && claude plugin update <plugin>@tecnowork --scope project'`. Desde Git Bash el mismo comando no funcionó. |
+| Cowork o Claude Code siguen usando la versión vieja después de actualizar | Los plugins se cargan al abrir la conversación o la sesión, y las abiertas se quedan con lo que cargaron. Cowork: conversación nueva. Claude Code avisa "Restart to apply changes": reiniciar la sesión. |
 | El `CLAUDE.md` existe, la sesión lo lee, y en otra máquina o en un clon limpio los invariantes no están | El `.gitignore` excluye `CLAUDE.md`. No da error: simplemente nunca se commitea. |
 | Se agregó `!.claude/settings.json` al `.gitignore` y sigue sin versionarse | El directorio `.claude/` estaba excluido entero: Git no evalúa excepciones dentro de una carpeta ya ignorada. Hay que excluir por archivo (`.claude/*` + `!archivo`), no por carpeta. |
 | Un overlay listado en `enabledPlugins` no aparece en `claude plugin list` | `list` muestra todos los scopes, así que si no está ahí no está en ninguno: puede hacer falta instalarlo además, con `install --scope project`. Distinto es si el síntoma vino de un `update`: ahí lo primero a descartar es el `--scope` faltante. |

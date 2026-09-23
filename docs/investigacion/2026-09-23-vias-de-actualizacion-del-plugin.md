@@ -53,7 +53,8 @@ abra la carpeta, el proyecto carga una versión u otra, sin ningún aviso.
 
 Cómo se detecta: `claude plugin list` muestra dos entradas de scope `project` para el mismo repo.
 Cómo se corrige: correr el `update --scope project` desde la carpeta escrita de cada una de las dos
-formas.
+formas. [obs] Para la minúscula funcionó desde PowerShell
+`cmd.exe /c 'cd /d c:\dev\<repo> && claude plugin update <plugin>@tecnowork --scope project'`; el mismo comando desde Git Bash no.
 
 ## Lo que queda como procedimiento
 
@@ -64,5 +65,7 @@ Toda publicación termina, **en cada máquina**, con:
    revisar que no haya entradas duplicadas del mismo repo.
 2. Vía B: app de escritorio → Administrar mercados → `software-factory` → Buscar actualizaciones;
    ficha del plugin → Actualizar; confirmar la versión en la ficha; conversación nueva de Cowork.
+3. [obs] Las sesiones abiertas de Cowork o de Claude Code siguen con la versión que cargaron; Claude
+   Code avisa "Restart to apply changes". Reiniciarlas.
 
 Los automáticos quedan activados en las dos vías, pero no se cuenta con ellos hasta verificarlos.

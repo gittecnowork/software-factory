@@ -9,6 +9,9 @@ Verificado: 2026-09-15. La tabla de comportamiento de `git add -n` se comprobó 
 en un repositorio desechable con **git 2.54.0** en Windows, no de memoria. Si esa tabla se contradice
 con lo que devuelve el repo que tenés delante, gana el repo: anotalo y corregí esta skill.
 
+Ampliada el 2026-09-23 (0.7.1) con la trampa de los locks que deja git corrido desde el shell de
+Cowork sobre una carpeta conectada.
+
 Un commit no se juzga por lo que se quiso cambiar, sino por **lo que efectivamente entra**. Los tres
 errores que esta skill evita son siempre el mismo error con distinta cara: tomar el silencio de un
 comando como respuesta, tomar una respuesta parcial como completa, y ajustar el criterio para que dé
@@ -156,3 +159,4 @@ poner adentro:
 | Se pushea, el push no da error, y el commit no está en el remoto | Se confirmó contra `git log origin/<rama>` sin `fetch`: esa ref es local. |
 | Aparece un archivo inesperado en `git status` y se commitea igual "porque era chico" | Alcance no declarado. Se nombra y se explica, o no entra. |
 | La condición dura se verificó al empezar y el commit igual metió lo que no debía | Se verificó una vez, no antes del commit. El árbol de ahora es el único que cuenta. |
+| Después de trabajar el repo desde Cowork, el próximo `git add` o `commit` falla con `Unable to create '.git/index.lock': File exists` | El shell de Cowork sobre una carpeta conectada no puede borrar archivos sin permiso explícito, y git no puede soltar sus locks. Un `fetch` y un `status` en la misma corrida dejaron `.git/index.lock` y `.git/objects/maintenance.lock` vacíos (2026-09-23). Desde ese shell, solo git de lectura y siempre con `git --no-optional-locks`; si el lock ya quedó, borrarlo con la certeza de que no hay otro git corriendo. |

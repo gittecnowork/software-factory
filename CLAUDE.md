@@ -30,8 +30,9 @@ mensajes de commit.
 6. **El repo es público, historial incluido (regla 27 para los aportes).** No entran claves, tokens, connection strings,
    IPs, datos personales ni nombres reales de clientes: ni en el registro, ni en las skills, ni en
    los ejemplos. Lo que se commitea y se borra después sigue en el historial.
-7. **Antes de pushear, `node .github/scripts/chequeos-fabrica.mjs` con código 0.** Es el mismo
-   chequeo que corre en GitHub en cada push y cada PR (README, "Chequeos automáticos").
+7. **Después de commitear y antes de pushear, `node .github/scripts/chequeos-fabrica.mjs` con
+   código 0.** Es el mismo chequeo que corre en GitHub en cada push y cada PR (README, "Chequeos
+   automáticos"). Compara commits: con cambios sin commitear o sin trackear falla a propósito.
 8. **Commits solo cuando se piden**, con `software-factory:commitear-con-verificacion`, y
    confirmados contra el remoto (`git ls-remote`), no contra la ref local.
 

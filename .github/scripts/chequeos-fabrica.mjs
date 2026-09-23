@@ -5,7 +5,8 @@
 //   node .github/scripts/chequeos-fabrica.mjs --base <ref|sha>   (CI: sha anterior o base del PR)
 //   node .github/scripts/chequeos-fabrica.mjs                    (local: compara contra origin/main)
 //
-// Compara commits: el working tree sin commitear no entra (se avisa si está sucio).
+// Compara commits. Con el árbol sucio (incluidos archivos sin trackear) falla: se corre después
+// del commit y antes del push.
 // Sale con código 0 si todo pasa; con 1 si algún chequeo falla. Cada falla dice archivo y motivo.
 
 import { execFileSync } from 'node:child_process';
@@ -43,8 +44,14 @@ function resolverBase() {
 
 const base = resolverBase();
 const cambiados = base ? git('diff', '--name-only', `${base}`, 'HEAD').split('\n').filter(Boolean) : [];
-if (gitOk('diff', '--quiet') === false || gitOk('diff', '--cached', '--quiet') === false) {
-  aviso('hay cambios sin commitear: no se chequean, solo se chequea HEAD');
+// Árbol sucio = falla, no aviso. El chequeo toma la lista de cambios de los commits pero lee los
+// archivos del disco: con cambios sin commitear mezcla las dos cosas y puede dar 0 sin haber mirado
+// lo nuevo (pasó en 0.7.0). `git diff --quiet` no veía los archivos sin trackear; `status` sí.
+// En CI el checkout está siempre limpio. --no-optional-locks: correrlo no deja index.lock.
+const sucio = git('--no-optional-locks', 'status', '--porcelain', '--untracked-files=all');
+if (sucio) {
+  const rutas = sucio.split('\n');
+  falla('arbol', `${rutas.length} ruta/s sin commitear o sin trackear (${rutas.slice(0, 3).map((r) => r.trim()).join('; ')}${rutas.length > 3 ? '; …' : ''}). Commitear y volver a correr: la corrida que vale es después del commit y antes del push`);
 }
 
 // ---------------------------------------------------------------- marketplace (C4)

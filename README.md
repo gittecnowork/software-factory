@@ -13,7 +13,7 @@ historial incluido) lo puede leer cualquiera. Por eso no entra nada sensible: ve
 
 | Plugin | Contenido |
 |---|---|
-| `software-factory` v0.7.0 | 5 agentes, 5 skills, 1 hook |
+| `software-factory` v0.7.1 | 5 agentes, 5 skills, 1 hook |
 | `stack-next-nest-prisma` v0.2.0 | 1 skill: `migrar-postgres-a-supabase-con-prisma` |
 | `tw-finance` | vacío — solo manifiesto y README de alcance |
 
@@ -57,7 +57,7 @@ Supabase, Vercel y Railway.
 CLAUDE.md          Condiciones duras para las sesiones de Claude Code en este repo.
 .github/
   workflows/chequeos.yml         Chequeos automáticos en cada push y cada PR a main.
-  scripts/chequeos-fabrica.mjs   Los chequeos; también se corren a mano antes de pushear.
+  scripts/chequeos-fabrica.mjs   Los chequeos; a mano, después del commit y antes del push.
 .claude-plugin/marketplace.json   Catálogo: qué plugins publica este repo.
 .claude/skills/    Skills que solo aplican a este repo (auditar-registro).
 registro/
@@ -116,10 +116,14 @@ secretos, y en un repo público no consume minutos pagos. Falla si:
   en una sola línea;
 - cambió contenido de un plugin y su `version` no subió (regla 16);
 - la tabla "Qué hay hoy" no coincide con la versión o con la cantidad de agentes, skills y hooks;
-- una línea agregada parece un secreto, una connection string con contraseña o una IP pública.
+- una línea agregada parece un secreto, una connection string con contraseña o una IP pública;
+- (solo a mano) quedan cambios sin commitear o archivos sin trackear.
 
-**Correrlo antes de pushear**, desde la raíz: `node .github/scripts/chequeos-fabrica.mjs`.
-Compara `HEAD` contra `origin/main` y necesita el CLI `claude` en el PATH. En un push a `main`
+**Correrlo después de commitear y antes de pushear**, desde la raíz:
+`node .github/scripts/chequeos-fabrica.mjs`. Compara `HEAD` contra `origin/main`, necesita el CLI
+`claude` en el PATH y **falla si el árbol está sucio**, incluidos los archivos sin trackear: la lista
+de cambios sale de los commits pero los archivos se leen del disco. Hasta la 0.7.0 solo avisaba, con
+código 0, y una corrida antes del commit pasaba sin haber mirado lo nuevo. En un push a `main`
 avisa **después** del hecho: hasta que exista la protección de rama, un ✘ no frena nada.
 
 Estado: etapa 1 de `docs/decisiones/2026-09-17-revision-automatica-de-contribuciones.md`.
@@ -129,7 +133,7 @@ Probado el 2026-09-17 contra una copia del repo:
 - el historial completo, commit por commit: habría frenado 5 publicaciones sin bump (`c04f9ad`,
   `972e0c4`, `0336d97`, `615e333`, `466088d`) y 3 desfasajes del README.
 
-**Falta verlo correr en GitHub.**
+Visto correr en GitHub: la corrida #5 de `chequeos` (push de la 0.7.0) pasó en verde.
 
 ## Cuándo se activa cada cosa
 
@@ -156,8 +160,9 @@ instalar.
 El ciclo completo, después de cualquier cambio al plugin:
 
 ```bash
+# subir la version en plugin.json (regla 16) y commitear; recién entonces, con el árbol limpio:
 node .github/scripts/chequeos-fabrica.mjs    # incluye claude plugin validate de cada plugin
-# subir la version en plugin.json (regla 16), commitear, pushear, y recién entonces, en cada máquina:
+# pushear, y después, en cada máquina:
 claude plugin update software-factory@tecnowork --scope user   # refresca el marketplace solo
 claude plugin list                  # cada entrada trae su Scope, su Version y su Status
 ```
@@ -167,11 +172,13 @@ update <plugin>@tecnowork --scope project` para cada plugin que habilita, y `cla
 mismo. El `update --scope user` no toca los installs de scope `project`: cada repo consumidor se
 queda en la versión que tenía, `enabled` y sin ningún error. Así se encontró twfinance en 0.5.3 el
 2026-09-16, después de publicar 0.6.0. Si `list` muestra **dos** entradas de scope `project` para el
-mismo repo (`c:\...` y `C:\...`), correr el `update` desde las dos formas de la ruta.
+mismo repo (`c:\...` y `C:\...`), correr el `update` desde las dos formas de la ruta. Para la forma
+en minúscula, desde PowerShell: `cmd.exe /c 'cd /d c:\dev\<repo> && claude plugin update <plugin>@tecnowork --scope project'`. El mismo
+comando desde Git Bash no funcionó (medición del 2026-09-23).
 
 Y por la otra vía, la de la cuenta, que es la que usa **Cowork**: en la app de escritorio,
 Administrar mercados → `software-factory` → Buscar actualizaciones; en la ficha del plugin,
-Actualizar; confirmar la versión en la ficha, y abrir una conversación nueva. El detalle y la
+Actualizar; confirmar la versión en la ficha, y abrir una conversación nueva. Las sesiones que ya estaban abiertas, de Cowork o de Claude Code, siguen con la versión que cargaron: Claude Code lo avisa con "Restart to apply changes" y hay que reiniciarlas. El detalle y la
 medición están en `docs/investigacion/2026-09-23-vias-de-actualizacion-del-plugin.md`.
 
 El `--scope` va **siempre explícito en `update` e `install`** (regla 17): sin él asumen `user`, y un

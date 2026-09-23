@@ -58,7 +58,9 @@ carpeta, ¿puede ubicar la app o atacarla?"** Si la respuesta no es un "no" clar
 1. `git config user.email` → el mail `noreply` de GitHub de la cuenta
    (`<id>+<usuario>@users.noreply.github.com`, en GitHub → Settings → Emails). El mail del autor
    queda público en cada commit.
-2. `node .github/scripts/chequeos-fabrica.mjs` con código 0.
+2. Commitear, y **después**, con el árbol limpio, `node .github/scripts/chequeos-fabrica.mjs` con
+   código 0. Compara commits: con cambios sin commitear o sin trackear falla a propósito, y hasta la
+   0.7.0 daba código 0 sin haber mirado lo nuevo.
 3. Una búsqueda de los identificadores privados del proyecto sobre toda la carpeta, con salida
    vacía. Los patrones los tiene el dueño del proyecto y **no se escriben** en el aporte.
 4. La tabla de anonimato, recorrida categoría por categoría, y marcada en el `PEDIDO.md`: "revisado
